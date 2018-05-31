@@ -1,0 +1,281 @@
+<?php
+namespace MichielRoos\Doctor\Service;
+
+/**
+ * ⓒ 2018 Michiel Roos <michiel@michielroos.com>
+ * All rights reserved
+ *
+ * This file is part of the TYPO3 CMS project.
+ *
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
+ *
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * The TYPO3 project - inspiring people to share!
+ */
+
+use MichielRoos\Doctor\Domain\Model\Header;
+use MichielRoos\Doctor\Domain\Model\KeyValueHeader;
+use MichielRoos\Doctor\Domain\Model\KeyValuePair;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
+
+/**
+ * Class ContentApiService
+ * @package MichielRoos\Doctor\Service
+ */
+class ContentApiService extends BaseApiService
+{
+	/**
+	 * @var TypoScriptFrontendController
+	 */
+	protected $tsfe;
+
+	/**
+	 * Get some basic site information.
+	 *
+	 * @return array
+	 * @throws \TYPO3\CMS\Core\Error\Http\ServiceUnavailableException
+	 */
+	public function getInfo()
+	{
+		$this->setupTsfe();
+		$this->results[] = new Header('Content information');
+
+		$this->getContentElements();
+		$this->getContentTypes();
+		$this->getPluginTypes();
+
+		return $this->results;
+	}
+
+	/**
+	 * Get total number of content elements.
+	 */
+	public function getContentElements()
+	{
+		$databaseHandler = $this->getDatabaseHandler();
+		$result = $databaseHandler->sql_query('SELECT COUNT(*) AS total FROM tt_content WHERE deleted = 0');
+		$count = $databaseHandler->sql_fetch_assoc($result);
+		$this->results[] = new KeyValuePair('Total number of content elements', number_format($count['total']));
+		$databaseHandler->sql_free_result($result);
+	}
+
+	/**
+	 * Get available content elements
+	 */
+	public function getContentTypes()
+	{
+		$setup = $this->tsfe->tmpl->setup;
+		$contentTypes = $this->noDots(array_keys($setup['tt_content.']));
+		$this->results[] = new Header('Content usage');
+		$usage = $this->getContentElementUsage();
+		$used = [];
+		$unused = [];
+		foreach ($contentTypes as $contentType) {
+			if (in_array($contentType, array_keys($usage))) {
+				$used[$contentType] = $usage[$contentType];
+			} else {
+				$unused[$contentType] = 'unused';
+			}
+		}
+		$this->results[] = new KeyValueHeader('contentType', 'count');
+		arsort($used);
+		foreach ($used as $key => $value) {
+			$this->results[] = new KeyValuePair($key, number_format($value));
+		}
+		foreach ($unused as $key => $value) {
+			$this->results[] = new KeyValuePair($key, $value);
+		}
+	}
+
+	/**
+	 * Get available plugin elements
+	 */
+	public function getPluginTypes()
+	{
+		$setup = $this->tsfe->tmpl->setup;
+		$pluginTypes = $this->noDots(array_keys($setup['tt_content.']['list.']['20.']));
+		unset($pluginTypes['key']);
+		unset($pluginTypes['stdWrap']);
+		$this->results[] = new Header('Plugin usage');
+		$usage = $this->getPluginUsage();
+		$used = [];
+		$unused = [];
+		foreach ($pluginTypes as $pluginType) {
+			if (in_array($pluginType, array_keys($usage))) {
+				$used[$pluginType] = $usage[$pluginType];
+			} else {
+				$unused[$pluginType] = 'unused';
+			}
+		}
+		arsort($used);
+		$this->results[] = new KeyValueHeader('pluginType', 'count');
+		foreach ($used as $key => $value) {
+			$this->results[] = new KeyValuePair($key, number_format($value));
+		}
+		foreach ($unused as $key => $value) {
+			$this->results[] = new KeyValuePair($key, $value);
+		}
+	}
+
+	/**
+	 * Get content element usage information
+	 */
+	private function getContentElementUsage()
+	{
+		$usage = [];
+		$databaseHandler = $this->getDatabaseHandler();
+		$result = $databaseHandler->sql_query(
+			"SELECT
+			  COUNT(*) AS `total`, CType
+			FROM
+			  `tt_content`
+			GROUP BY CType
+			ORDER BY total DESC;"
+		);
+		while ($row = $databaseHandler->sql_fetch_assoc($result)) {
+			$usage[$row['CType']] = $row['total'];
+		}
+		$databaseHandler->sql_free_result($result);
+		return $usage;
+	}
+
+	/**
+	 * Get plugin usage information
+	 */
+	private function getPluginUsage()
+	{
+		$usage = [];
+		$databaseHandler = $this->getDatabaseHandler();
+		$result = $databaseHandler->sql_query(
+			"SELECT
+			  COUNT(*) AS `total`, list_type
+			FROM
+			  `tt_content`
+			WHERE
+			  CType = 'list'
+			GROUP BY list_type
+			ORDER BY total DESC;"
+		);
+		while ($row = $databaseHandler->sql_fetch_assoc($result)) {
+			$usage[$row['list_type']] = number_format($row['total']);
+		}
+		$databaseHandler->sql_free_result($result);
+		return $usage;
+	}
+
+	/**
+	 * Find page that is marked as 'is_siteroot', preferabley with a domain record attached. If that is not available,
+	 * then find the first page with a domain record attached. Default to pid 1 if that exists.
+	 *
+	 * @return int
+	 */
+	private function getRootPageId()
+	{
+		$uid = 1;
+		$databaseHandler = $this->getDatabaseHandler();
+		// Fetch all available domains
+		$result = $databaseHandler->sql_query(
+			'SELECT
+			  d.pid,
+			  d.domainName
+			FROM
+			  sys_domain AS d
+			WHERE
+			  d.hidden = 0
+			ORDER BY d.pid, d.sorting;'
+		);
+		$domains = [];
+		while ($row = $databaseHandler->sql_fetch_assoc($result)) {
+			$domains[$row['domainName']] = $row['pid'];
+		}
+		$databaseHandler->sql_free_result($result);
+
+		// Fetch pages with domains on them and site roots and page with uid 1
+		if (count($domains)) {
+			$domainIds = array_unique($domains);
+		} else {
+			$domainIds[] = 1;
+		}
+		$result = $databaseHandler->sql_query(
+			"SELECT
+			  p.uid,
+			  p.is_siteroot
+			FROM
+			  pages AS p
+			WHERE
+			  p.deleted = 0
+			  AND p.hidden = 0
+			  AND (p.is_siteroot = 1 OR p.uid = 1 OR p.uid IN(" . implode(',', $domainIds) . "))
+			ORDER BY p.is_siteroot DESC;"
+		);
+		$pages = [];
+		$siteRoots = [];
+		$siteRootsWithDomain = [];
+		while ($row = $databaseHandler->sql_fetch_assoc($result)) {
+			if ($row['is_siteroot']) {
+				$uid = $row['uid'];
+				$siteRoots[] = $row['uid'];
+				if (in_array($uid, $domains)) {
+					$siteRootsWithDomain[] = $uid;
+				}
+			} else {
+				$pages[] = $row['uid'];
+			}
+		}
+		$databaseHandler->sql_free_result($result);
+		if (count($siteRootsWithDomain)) {
+			$uid = array_pop($siteRootsWithDomain);
+		} elseif (count($siteRoots)) {
+			$uid = array_pop($siteRoots);
+		} elseif (in_array(1, $pages)) {
+			$uid = 1;
+		}
+		return (int)$uid;
+	}
+
+	/**
+	 * Setup Typoscript Frontend controller
+	 * @throws \TYPO3\CMS\Core\Error\Http\ServiceUnavailableException
+	 */
+	private function setupTsfe()
+	{
+		$GLOBALS['TT'] = new \TYPO3\CMS\Core\TimeTracker\NullTimeTracker();
+
+		$this->tsfe = GeneralUtility::makeInstance(
+			TypoScriptFrontendController::class,
+			$GLOBALS['TYPO3_CONF_VARS'],
+			$this->getRootPageId(),
+			0
+		);
+
+		$GLOBALS['TSFE'] = $this->tsfe;
+
+		$this->tsfe->connectToDB();
+		$this->tsfe->initFEuser();
+		$this->tsfe->determineId();
+		$this->tsfe->initTemplate();
+		$this->tsfe->getConfigArray();
+	}
+
+	/**
+	 * Filter items containing dots from array
+	 *
+	 * @param $array
+	 * @return array
+	 */
+	private function noDots($array)
+	{
+		$noDots = [];
+		foreach ($array as $item) {
+			if (strpos($item, '.') === false) {
+				$noDots[] = $item;
+			}
+		}
+		return $noDots;
+	}
+}
