@@ -19,6 +19,7 @@ namespace MichielRoos\Doctor\Service;
 
 use MichielRoos\Doctor\Domain\Model\Header;
 use MichielRoos\Doctor\Domain\Model\KeyValuePair;
+use MichielRoos\Doctor\Utility\DatabaseUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -67,12 +68,7 @@ class SiteApiService extends BaseApiService
 	 */
 	public function getDatabaseSize()
 	{
-		$databaseHandler = $this->getDatabaseHandler();
-		$result = $databaseHandler->sql_query("SELECT SUM( data_length + index_length ) AS size FROM information_schema.TABLES WHERE table_schema = '" . TYPO3_db . "'");
-		$row = $databaseHandler->sql_fetch_assoc($result);
-		$databaseSize = array_pop($row);
-		$this->results[] = new KeyValuePair('Database size', GeneralUtility::formatSize($databaseSize));
-		$databaseHandler->sql_free_result($result);
+		$this->results[] = new KeyValuePair('Database size', GeneralUtility::formatSize(DatabaseUtility::getDatabaseSize()));
 	}
 
 	/**

@@ -21,6 +21,8 @@ use MichielRoos\Doctor\Domain\Model\Header;
 use MichielRoos\Doctor\Domain\Model\KeyValueHeader;
 use MichielRoos\Doctor\Domain\Model\KeyValuePair;
 use MichielRoos\Doctor\Domain\Model\Suggestion;
+use MichielRoos\Doctor\Utility\DatabaseUtility;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Class CacheApiService
@@ -39,6 +41,7 @@ class CacheApiService extends BaseApiService
 
 		$this->listCacheConfigurations();
 		$this->getCacheHashUsage();
+		$this->getCacheHashSizeByType();
 
 		return $this->results;
 	}
@@ -84,15 +87,36 @@ class CacheApiService extends BaseApiService
 	}
 
 	/**
-	 * Get table count.
+	 * Get cache_hash usage
 	 */
 	public function getCacheHashUsage()
 	{
 		$databaseHandler = $this->getDatabaseHandler();
 		$result = $databaseHandler->sql_query("SELECT COUNT(*) as `total`, tag FROM `cf_cache_hash_tags` GROUP BY tag ORDER BY total DESC");
 		$this->results[] = new Header('Cache hash usage by tag');
+		$this->results[] = new KeyValueHeader('tag', 'rows');
 		while ($row = $databaseHandler->sql_fetch_assoc($result)) {
 			$this->results[] = new KeyValuePair($row['tag'], number_format($row['total']));
+		}
+		$databaseHandler->sql_free_result($result);
+	}
+
+	/**
+	 * Get cache_hash usage: size used per type
+	 */
+	public function getCacheHashSizeByType()
+	{
+		$databaseHandler = $this->getDatabaseHandler();
+		$result = $databaseHandler->sql_query("
+			SELECT SUM( LENGTH( c.content ) ) AS size, t.tag
+			FROM cf_cache_hash AS c
+			JOIN  `cf_cache_hash_tags` AS t ON c.identifier = t.identifier
+			GROUP BY t.tag
+			ORDER BY size DESC");
+		$this->results[] = new Header('Cache hash size by tag (total size: %s)', [GeneralUtility::formatSize(DatabaseUtility::getTableSize('cf_cache_hash'))]);
+		$this->results[] = new KeyValueHeader('tag', 'total size');
+		while ($row = $databaseHandler->sql_fetch_assoc($result)) {
+			$this->results[] = new KeyValuePair($row['tag'], GeneralUtility::formatSize($row['size']));
 		}
 		$databaseHandler->sql_free_result($result);
 	}
