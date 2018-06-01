@@ -92,7 +92,7 @@ class CacheApiService extends BaseApiService
 	public function getCacheHashUsage()
 	{
 		$databaseHandler = $this->getDatabaseHandler();
-		$result = $databaseHandler->sql_query("SELECT COUNT(*) as `total`, tag FROM `cf_cache_hash_tags` GROUP BY tag ORDER BY total DESC");
+		$result = $databaseHandler->sql_query("SELECT COUNT(*) as `total`, tag FROM `cf_cache_hash_tags` GROUP BY tag ORDER BY total DESC, total");
 		$this->results[] = new Header('Cache hash usage by tag');
 		$this->results[] = new KeyValueHeader('tag', 'rows');
 		while ($row = $databaseHandler->sql_fetch_assoc($result)) {
@@ -112,7 +112,7 @@ class CacheApiService extends BaseApiService
 			FROM cf_cache_hash AS c
 			JOIN  `cf_cache_hash_tags` AS t ON c.identifier = t.identifier
 			GROUP BY t.tag
-			ORDER BY size DESC");
+			ORDER BY size DESC, tag");
 		$this->results[] = new Header('Cache hash size by tag (total size: %s)', [GeneralUtility::formatSize(DatabaseUtility::getTableSize('cf_cache_hash'))]);
 		$this->results[] = new KeyValueHeader('tag', 'total size');
 		while ($row = $databaseHandler->sql_fetch_assoc($result)) {
