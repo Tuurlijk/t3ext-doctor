@@ -67,6 +67,7 @@ class DatabaseApiService extends BaseApiService
 		$this->getTableCount();
 		$this->getLargestTablesBySize();
 		$this->getLargestTablesByRecordCount();
+		$this->getSmallestTablesByRecordCount();
 		if ($table) {
 			$this->table = mysqli_real_escape_string($this->getDatabaseHandler()->getDatabaseHandle(), $table);
 			$this->tableColumns = $this->getTableColumns();
@@ -249,7 +250,7 @@ class DatabaseApiService extends BaseApiService
 			WHERE
 			  TABLE_SCHEMA = '" . TYPO3_db . "'
 			ORDER BY
-			  rows DESC
+			  rows DESC, `table`
 			LIMIT " . (int)$this->limit . ";");
 		$this->results[] = new Header('%s Largest tables by record count', [$this->limit]);
 
@@ -262,6 +263,39 @@ class DatabaseApiService extends BaseApiService
 		$databaseHandler->sql_free_result($result);
 		if ($showSuggestion) {
 			$this->results[] = new Suggestion('One ore more tables have more than a million records. This is quite a lot for a table, inspect the tables and see if you can reduce their size.');
+		}
+	}
+
+	/**
+	 * Get smallest tables by record count
+	 */
+	public function getSmallestTablesByRecordCount()
+	{
+		$showSuggestion = false;
+		$databaseHandler = $this->getDatabaseHandler();
+		$result = $databaseHandler->sql_query(
+			"SELECT
+			  TABLE_NAME as `table`,
+			  TABLE_ROWS as `rows`
+			FROM
+			  INFORMATION_SCHEMA.TABLES
+			WHERE
+			  TABLE_SCHEMA = '" . TYPO3_db . "'
+			ORDER BY
+			  rows, `table` 
+			LIMIT " . (int)$this->limit . ";");
+		$this->results[] = new Header('%s Smallest tables by record count', [$this->limit]);
+
+		while ($row = $databaseHandler->sql_fetch_assoc($result)) {
+			var_dump($row['rows'] );
+			$this->results[] = new KeyValuePair($row['table'], $row['rows'] !== '0' ? number_format($row['rows']) : 'zero');
+			if ($row['rows'] === '0') {
+				$showSuggestion = true;
+			}
+		}
+		$databaseHandler->sql_free_result($result);
+		if ($showSuggestion) {
+			$this->results[] = new Suggestion('One ore more tables have zero records. Do you need these tables?');
 		}
 	}
 
