@@ -287,7 +287,6 @@ class DatabaseApiService extends BaseApiService
 		$this->results[] = new Header('%s Smallest tables by record count', [$this->limit]);
 
 		while ($row = $databaseHandler->sql_fetch_assoc($result)) {
-			var_dump($row['rows'] );
 			$this->results[] = new KeyValuePair($row['table'], $row['rows'] !== '0' ? number_format($row['rows']) : 'zero');
 			if ($row['rows'] === '0') {
 				$showSuggestion = true;
