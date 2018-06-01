@@ -20,7 +20,12 @@ namespace MichielRoos\Doctor\Service;
 use MichielRoos\Doctor\Domain\Model\Header;
 use MichielRoos\Doctor\Domain\Model\KeyValueHeader;
 use MichielRoos\Doctor\Domain\Model\KeyValuePair;
+use MichielRoos\Doctor\Domain\Model\ListItem;
+use MichielRoos\Doctor\Domain\Model\Notice;
 use MichielRoos\Doctor\Domain\Model\Suggestion;
+use MichielRoos\Doctor\Utility\ArrayUtility;
+use MichielRoos\Doctor\Utility\Frontend\TyposcriptUtility;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Class TyposcriptApiService
@@ -31,19 +36,22 @@ class TyposcriptApiService extends BaseApiService
 	/**
 	 * Typoscript information
 	 *
+	 * @param string $key
 	 * @return array
+	 * @throws \TYPO3\CMS\Core\Error\Http\ServiceUnavailableException
 	 */
-	public function getInfo()
+	public function getInfo($key = null)
 	{
 		$this->results[] = new Header('Typoscript information');
 
 		$this->listTyposcriptTemplates();
+		$this->getTyposcriptObjectSizes($key);
 
 		return $this->results;
 	}
 
 	/**
-	 * List cache configurations
+	 * List Typoscript templates
 	 */
 	public function listTyposcriptTemplates()
 	{
@@ -105,5 +113,55 @@ class TyposcriptApiService extends BaseApiService
 			$this->results[] = new Suggestion('Site has %s root Typoscript templates that are outside of actual siteroot pages. Is this intended?',
 				[$rootTemplatesOutsideSiteRoots]);
 		}
+	}
+
+	/**
+	 * Get Typoscript object sizes
+	 * @param null $key
+	 * @throws \TYPO3\CMS\Core\Error\Http\ServiceUnavailableException
+	 */
+	public function getTyposcriptObjectSizes($key = null)
+	{
+		$this->results[] = new Header('Typoscript object sizes (strlen of serialized object)');
+		TyposcriptUtility::setupTsfe();
+		if ($key) {
+			$setup = $this->getSetupByKey($key);
+			if (!count($setup)) {
+				$this->results[] = new Notice('Typoscript object not found for key "%s"', [$key]);
+				return;
+			}
+			$this->results[] = new Notice('Report for objects within key "%s"', [$key]);
+		} else {
+			$setup = $GLOBALS['TSFE']->tmpl->setup;
+		}
+		$objects = ArrayUtility::dots(array_keys($setup));
+		$objectsBySize = [];
+		foreach ($objects as $object) {
+			$objectsBySize[$object] = strlen(serialize($setup[$object]));
+		}
+		arsort($objectsBySize);
+
+		foreach ($objectsBySize as $key => $value) {
+			$this->results[] = new KeyValuePair($key, GeneralUtility::formatSize($value));
+		}
+	}
+
+	/**
+	 * Get part of the TSFE by key
+	 *
+	 * @param $key
+	 * @return array
+	 */
+	private function getSetupByKey($key)
+	{
+		$setup = [];
+		$keyParts = explode('.', rtrim($key, '.'));
+		if (count($keyParts)) {
+			$setup = $GLOBALS['TSFE']->tmpl->setup;
+			foreach ($keyParts as $keyPart) {
+				$setup = $setup[$keyPart . '.'];
+			}
+		}
+		return $setup;
 	}
 }

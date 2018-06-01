@@ -20,6 +20,8 @@ namespace MichielRoos\Doctor\Service;
 use MichielRoos\Doctor\Domain\Model\Header;
 use MichielRoos\Doctor\Domain\Model\KeyValueHeader;
 use MichielRoos\Doctor\Domain\Model\KeyValuePair;
+use MichielRoos\Doctor\Utility\ArrayUtility;
+use MichielRoos\Doctor\Utility\Frontend\TyposcriptUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
@@ -30,11 +32,6 @@ use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 class ContentApiService extends BaseApiService
 {
 	/**
-	 * @var TypoScriptFrontendController
-	 */
-	protected $tsfe;
-
-	/**
 	 * Get some basic site information.
 	 *
 	 * @return array
@@ -42,7 +39,7 @@ class ContentApiService extends BaseApiService
 	 */
 	public function getInfo()
 	{
-		$this->setupTsfe();
+		TyposcriptUtility::setupTsfe();
 		$this->results[] = new Header('Content information');
 
 		$this->getContentElements();
@@ -69,8 +66,8 @@ class ContentApiService extends BaseApiService
 	 */
 	public function getContentTypes()
 	{
-		$setup = $this->tsfe->tmpl->setup;
-		$contentTypes = $this->noDots(array_keys($setup['tt_content.']));
+		$setup = $GLOBALS['TSFE']->tmpl->setup;
+		$contentTypes = ArrayUtility::noDots(array_keys($setup['tt_content.']));
 		$this->results[] = new Header('Content usage');
 		$usage = $this->getContentElementUsage();
 		$used = [];
@@ -97,8 +94,8 @@ class ContentApiService extends BaseApiService
 	 */
 	public function getPluginTypes()
 	{
-		$setup = $this->tsfe->tmpl->setup;
-		$pluginTypes = $this->noDots(array_keys($setup['tt_content.']['list.']['20.']));
+		$setup = $GLOBALS['TSFE']->tmpl->setup;
+		$pluginTypes = ArrayUtility::noDots(array_keys($setup['tt_content.']['list.']['20.']));
 		unset($pluginTypes['key']);
 		unset($pluginTypes['stdWrap']);
 		$this->results[] = new Header('Plugin usage');
@@ -166,116 +163,5 @@ class ContentApiService extends BaseApiService
 		}
 		$databaseHandler->sql_free_result($result);
 		return $usage;
-	}
-
-	/**
-	 * Find page that is marked as 'is_siteroot', preferabley with a domain record attached. If that is not available,
-	 * then find the first page with a domain record attached. Default to pid 1 if that exists.
-	 *
-	 * @return int
-	 */
-	private function getRootPageId()
-	{
-		$uid = 1;
-		$databaseHandler = $this->getDatabaseHandler();
-		// Fetch all available domains
-		$result = $databaseHandler->sql_query(
-			'SELECT
-			  d.pid,
-			  d.domainName
-			FROM
-			  sys_domain AS d
-			WHERE
-			  d.hidden = 0
-			ORDER BY d.pid, d.sorting;'
-		);
-		$domains = [];
-		while ($row = $databaseHandler->sql_fetch_assoc($result)) {
-			$domains[$row['domainName']] = $row['pid'];
-		}
-		$databaseHandler->sql_free_result($result);
-
-		// Fetch pages with domains on them and site roots and page with uid 1
-		if (count($domains)) {
-			$domainIds = array_unique($domains);
-		} else {
-			$domainIds[] = 1;
-		}
-		$result = $databaseHandler->sql_query(
-			"SELECT
-			  p.uid,
-			  p.is_siteroot
-			FROM
-			  pages AS p
-			WHERE
-			  p.deleted = 0
-			  AND p.hidden = 0
-			  AND (p.is_siteroot = 1 OR p.uid = 1 OR p.uid IN(" . implode(',', $domainIds) . "))
-			ORDER BY p.is_siteroot DESC;"
-		);
-		$pages = [];
-		$siteRoots = [];
-		$siteRootsWithDomain = [];
-		while ($row = $databaseHandler->sql_fetch_assoc($result)) {
-			if ($row['is_siteroot']) {
-				$uid = $row['uid'];
-				$siteRoots[] = $row['uid'];
-				if (in_array($uid, $domains)) {
-					$siteRootsWithDomain[] = $uid;
-				}
-			} else {
-				$pages[] = $row['uid'];
-			}
-		}
-		$databaseHandler->sql_free_result($result);
-		if (count($siteRootsWithDomain)) {
-			$uid = array_pop($siteRootsWithDomain);
-		} elseif (count($siteRoots)) {
-			$uid = array_pop($siteRoots);
-		} elseif (in_array(1, $pages)) {
-			$uid = 1;
-		}
-		return (int)$uid;
-	}
-
-	/**
-	 * Setup Typoscript Frontend controller
-	 * @throws \TYPO3\CMS\Core\Error\Http\ServiceUnavailableException
-	 */
-	private function setupTsfe()
-	{
-		$GLOBALS['TT'] = new \TYPO3\CMS\Core\TimeTracker\NullTimeTracker();
-
-		$this->tsfe = GeneralUtility::makeInstance(
-			TypoScriptFrontendController::class,
-			$GLOBALS['TYPO3_CONF_VARS'],
-			$this->getRootPageId(),
-			0
-		);
-
-		$GLOBALS['TSFE'] = $this->tsfe;
-
-		$this->tsfe->connectToDB();
-		$this->tsfe->initFEuser();
-		$this->tsfe->determineId();
-		$this->tsfe->initTemplate();
-		$this->tsfe->getConfigArray();
-	}
-
-	/**
-	 * Filter items containing dots from array
-	 *
-	 * @param $array
-	 * @return array
-	 */
-	private function noDots($array)
-	{
-		$noDots = [];
-		foreach ($array as $item) {
-			if (strpos($item, '.') === false) {
-				$noDots[] = $item;
-			}
-		}
-		return $noDots;
 	}
 }

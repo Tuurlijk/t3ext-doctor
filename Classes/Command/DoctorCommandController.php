@@ -128,11 +128,13 @@ class DoctorCommandController extends BaseCommandController
 
 	/**
 	 * Typoscript information
+	 * @param string $key Typoscript object key used for object size report
+	 * @throws \TYPO3\CMS\Core\Error\Http\ServiceUnavailableException
 	 */
-	public function typoscriptCommand()
+	public function typoscriptCommand($key = null)
 	{
 		$this->typoscriptApiService = $this->objectManager->get(TyposcriptApiService::class);
-		$results = $this->typoscriptApiService->getInfo();
+		$results = $this->typoscriptApiService->getInfo($key);
 		$this->writeResults($results);
 	}
 }
