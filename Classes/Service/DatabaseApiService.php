@@ -36,9 +36,9 @@ class DatabaseApiService extends BaseApiService
 	private $table;
 
 	/**
-	 * @var int
+	 * @var array
 	 */
-	private $tableRowCount;
+	private $tableRowCount = [];
 
 	/**
 	 * @var array
@@ -71,11 +71,14 @@ class DatabaseApiService extends BaseApiService
 			$this->table = mysqli_real_escape_string($this->getDatabaseHandler()->getDatabaseHandle(), $table);
 			$this->tableColumns = $this->getTableColumns();
 			$this->analyzeColumnsForTable();
-			if ($this->tableHasTimestampColumn()) {
+			if ($this->tableHasColumn('tstamp')) {
 				$this->getRecordAge();
 			}
-			if ($this->tableHasDeletedColumn()) {
+			if ($this->tableHasColumn('deleted')) {
 				$this->getDeletedRecords();
+			}
+			if ($this->tableHasColumn('hidden')) {
+				$this->getHiddenRecords();
 			}
 		}
 
@@ -106,36 +109,78 @@ class DatabaseApiService extends BaseApiService
 		$tableRowCount = $this->getTableRowCount();
 		$this->results[] = new KeyValuePair('total records', number_format($tableRowCount));
 
-			$result = $databaseHandler->sql_query(sprintf('SELECT COUNT(*) as total FROM %s WHERE deleted = 1', $this->table));
-			$row = $databaseHandler->sql_fetch_assoc($result);
-			$databaseHandler->sql_free_result($result);
-			if ($row['total'] > 0) {
-				$percentage = $row['total'] * 100 / $tableRowCount;
-				$this->results[] = new KeyValuePair(
-					'deleted records',
-					number_format($row['total']) . ' - ' . number_format($percentage, 2) . '%'
-				);
-			}
+		$result = $databaseHandler->sql_query(sprintf('SELECT COUNT(*) as total FROM %s WHERE deleted = 1', $this->table));
+		$row = $databaseHandler->sql_fetch_assoc($result);
+		$databaseHandler->sql_free_result($result);
+		if ($row['total'] > 0) {
+			$percentage = $row['total'] * 100 / $tableRowCount;
+			$this->results[] = new KeyValuePair(
+				'deleted records',
+				number_format($row['total']) . ' - ' . number_format($percentage, 2) . '%'
+			);
+		}
+		$this->getRecordAge('deleted = 1', 'Deleted record');
 	}
 
 	/**
-	 * Get record age
+	 * Get hidden records
 	 */
-	public function getRecordAge()
+	public function getHiddenRecords()
 	{
 		$databaseHandler = $this->getDatabaseHandler();
-		$this->results[] = new Header('Record age for table %s', [$this->table]);
-
-		$ages = [];
-		for($i = 1; $i <= 5; $i++) {
-			$ages[sprintf('Older than %s years', $i)] = strtotime(sprintf('-%d years', $i));
-		}
+		$this->results[] = new Header('Hidden records for table %s', [$this->table]);
 
 		$tableRowCount = $this->getTableRowCount();
 		$this->results[] = new KeyValuePair('total records', number_format($tableRowCount));
 
+		$result = $databaseHandler->sql_query(sprintf('SELECT COUNT(*) as total FROM %s WHERE hidden = 1', $this->table));
+		$row = $databaseHandler->sql_fetch_assoc($result);
+		$databaseHandler->sql_free_result($result);
+		if ($row['total'] > 0) {
+			$percentage = $row['total'] * 100 / $tableRowCount;
+			$this->results[] = new KeyValuePair(
+				'hidden records',
+				number_format($row['total']) . ' - ' . number_format($percentage, 2) . '%'
+			);
+		}
+		$this->getRecordAge('hidden = 1', 'Hidden record');
+	}
+
+	/**
+	 * Get record age
+	 * @param string $where
+	 * @param string $header
+	 */
+	public function getRecordAge($where = '', $header = 'Record')
+	{
+		$databaseHandler = $this->getDatabaseHandler();
+		$this->results[] = new Header('%s age for table %s', [$header, $this->table]);
+
+		$tableRowCount = $this->getTableRowCount($where);
+		$this->results[] = new KeyValuePair('total', number_format($tableRowCount));
+
+		if ($where) {
+			$where = 'AND ' . $where;
+		}
+
+		$result = $databaseHandler->sql_query(sprintf('SELECT COUNT(*) as total FROM %s WHERE tstamp > %d %s', $this->table, strtotime('-1 years'), $where));
+		$row = $databaseHandler->sql_fetch_assoc($result);
+		$databaseHandler->sql_free_result($result);
+		if ($row['total'] > 0) {
+			$percentage = $row['total'] * 100 / $tableRowCount;
+			$this->results[] = new KeyValuePair(
+				'Younger than 1 year',
+				number_format($row['total']) . ' - ' . number_format($percentage, 2) . '%'
+			);
+		}
+
+		$ages = [];
+		for ($i = 1; $i <= 5; $i++) {
+			$ages[sprintf('Older than %s years', $i)] = strtotime(sprintf('-%d years', $i));
+		}
+
 		foreach ($ages as $key => $age) {
-			$result = $databaseHandler->sql_query(sprintf('SELECT COUNT(*) as total FROM %s WHERE tstamp < %d', $this->table, $age));
+			$result = $databaseHandler->sql_query(sprintf('SELECT COUNT(*) as total FROM %s WHERE tstamp < %d %s', $this->table, $age, $where));
 			$row = $databaseHandler->sql_fetch_assoc($result);
 			$databaseHandler->sql_free_result($result);
 			if ($row['total'] > 0) {
@@ -244,7 +289,7 @@ class DatabaseApiService extends BaseApiService
 			$this->results[] = new KeyValueHeader('value', 'count');
 			$i = 0;
 			while ($row = $databaseHandler->sql_fetch_assoc($result)) {
-				$this->results[] = new KeyValuePair($row[$tableColumn] ?: 'NULL', number_format($row['rows']));
+				$this->results[] = new KeyValuePair($row[$tableColumn] ?: 'empty', number_format($row['rows']));
 				if ((int)$tableRowCount === (int)$row['rows']) {
 					$this->results[] = new Suggestion('All rows in this table have the same value. Do you really need this field?');
 				}
@@ -262,19 +307,27 @@ class DatabaseApiService extends BaseApiService
 	/**
 	 * Get table row count
 	 *
+	 * @param string $where
 	 * @return int
 	 */
-	private function getTableRowCount()
+	private function getTableRowCount($where = '')
 	{
-		if ($this->tableRowCount) {
-			return $this->tableRowCount;
+		if (array_key_exists($where, $this->tableRowCount)) {
+			return $this->tableRowCount[$where];
+		}
+		if ($where) {
+			$where = 'WHERE ' . $where;
 		}
 		$databaseHandler = $this->getDatabaseHandler();
-		$result = $databaseHandler->sql_query("SELECT COUNT(*) AS total FROM " . mysqli_real_escape_string($databaseHandler->getDatabaseHandle(), $this->table));
+		$result = $databaseHandler->sql_query(sprintf(
+			"SELECT COUNT(*) AS total FROM %s %s",
+			mysqli_real_escape_string($databaseHandler->getDatabaseHandle(), $this->table),
+			$where
+		));
 		$row = $databaseHandler->sql_fetch_assoc($result);
 		$databaseHandler->sql_free_result($result);
-		$this->tableRowCount = (int)$row['total'];
-		return $this->tableRowCount;
+		$this->tableRowCount[$where] = (int)$row['total'];
+		return $this->tableRowCount[$where];
 	}
 
 	/**
@@ -297,7 +350,8 @@ class DatabaseApiService extends BaseApiService
 			WHERE
 				`TABLE_SCHEMA`='" . TYPO3_db . "' 
 			AND
-				`TABLE_NAME`='" . mysqli_real_escape_string($databaseHandler->getDatabaseHandle(), $this->table) . "';");
+				`TABLE_NAME`='" . mysqli_real_escape_string($databaseHandler->getDatabaseHandle(),
+				$this->table) . "';");
 
 		while ($row = $databaseHandler->sql_fetch_assoc($result)) {
 			$columns[] = $row['COLUMN_NAME'];
@@ -307,20 +361,13 @@ class DatabaseApiService extends BaseApiService
 	}
 
 	/**
-	 * Returns true if the table contains a timestamp column
+	 * Returns true if the table contains $column
 	 *
+	 * @param string $column
 	 * @return bool
 	 */
-	private function tableHasTimestampColumn() {
-		return in_array('tstamp', $this->tableColumns);
-	}
-
-	/**
-	 * Returns true if the table contains a deleted column
-	 *
-	 * @return bool
-	 */
-	private function tableHasDeletedColumn() {
-		return in_array('deleted', $this->tableColumns);
+	private function tableHasColumn($column)
+	{
+		return in_array($column, $this->tableColumns);
 	}
 }
