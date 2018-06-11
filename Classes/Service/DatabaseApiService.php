@@ -60,7 +60,9 @@ class DatabaseApiService extends BaseApiService
 	 */
 	public function getInfo($limit = null, $table = null)
 	{
-		$this->limit = $limit;
+		if ((int)$limit) {
+			$this->limit = (int)$limit;
+		}
 		$this->results[] = new Header('Database information');
 
 		$this->getDatabaseSize();
@@ -305,7 +307,7 @@ class DatabaseApiService extends BaseApiService
 	public function analyzeColumnsForTable()
 	{
 		$this->results[] = new Header('Field info for table %s', [$this->table]);
-		$tableRowCount = $this->getTableRowCount($this->table);
+		$tableRowCount = $this->getTableRowCount();
 
 		$databaseHandler = $this->getDatabaseHandler();
 		foreach ($this->tableColumns as $tableColumn) {
@@ -327,7 +329,7 @@ class DatabaseApiService extends BaseApiService
 					$this->results[] = new Suggestion('All rows in this table have the same value. Do you really need this field?');
 				}
 				$i++;
-				if ($i > $this->limit) {
+				if ($i >= $this->limit) {
 					$this->results[] = new Notice('%s different values found, increase the "limit" of %s if you want to see more.',
 						[number_format($rowCount), $this->limit]);
 					break;

@@ -85,11 +85,16 @@ class DoctorCommandController extends BaseCommandController
 
 	/**
 	 * Content information
+	 *
+	 * @param string $contentType The content type (CType) to inspect
+	 * @param string $listType The list type (plugin) to inspect
+	 * @param int $limit Show up to [limit] records found
+	 * @throws \TYPO3\CMS\Core\Error\Http\ServiceUnavailableException
 	 */
-	public function contentCommand()
+	public function contentCommand($contentType = null, $listType = null, $limit = null)
 	{
 		$this->contentApiService = $this->objectManager->get(ContentApiService::class);
-		$results = $this->contentApiService->getInfo();
+		$results = $this->contentApiService->getInfo($contentType, $listType, $limit);
 		$this->writeResults($results);
 	}
 

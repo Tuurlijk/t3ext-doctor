@@ -20,10 +20,9 @@ namespace MichielRoos\Doctor\Service;
 use MichielRoos\Doctor\Domain\Model\Header;
 use MichielRoos\Doctor\Domain\Model\KeyValueHeader;
 use MichielRoos\Doctor\Domain\Model\KeyValuePair;
+use MichielRoos\Doctor\Domain\Model\Notice;
 use MichielRoos\Doctor\Utility\ArrayUtility;
 use MichielRoos\Doctor\Utility\Frontend\TyposcriptUtility;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
 /**
  * Class ContentApiService
@@ -32,20 +31,39 @@ use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 class ContentApiService extends BaseApiService
 {
 	/**
+	 * @var int
+	 */
+	private $limit = 30;
+
+	/**
 	 * Get some basic site information.
 	 *
+	 * @param string $contentType The content type (CType) to inspect
+	 * @param string $listType The list type (plugin) to inspect
+	 * @param int $limit Show up to [limit] records found
 	 * @return array
 	 * @throws \TYPO3\CMS\Core\Error\Http\ServiceUnavailableException
 	 */
-	public function getInfo()
+	public function getInfo($contentType, $listType, $limit)
 	{
+		if ((int)$limit) {
+			$this->limit = (int)$limit;
+		}
+
 		TyposcriptUtility::setupTsfe();
 		$this->results[] = new Header('Content information');
 
 		$this->getContentElements();
 		$this->getContentTypes();
 		$this->getPluginTypes();
-
+		if ($contentType) {
+			$contentType = mysqli_real_escape_string($this->getDatabaseHandler()->getDatabaseHandle(), $contentType);
+			$this->getContentTypeUsage($contentType);
+		}
+		if ($listType) {
+			$listType = mysqli_real_escape_string($this->getDatabaseHandler()->getDatabaseHandle(), $listType);
+			$this->getPluginTypeUsage($listType);
+		}
 		return $this->results;
 	}
 
@@ -90,6 +108,62 @@ class ContentApiService extends BaseApiService
 	}
 
 	/**
+	 * Get content type usage.
+	 * @param $contentType
+	 */
+	public function getContentTypeUsage($contentType)
+	{
+		$databaseHandler = $this->getDatabaseHandler();
+		$result = $databaseHandler->sql_query(sprintf("SELECT
+			  p.uid        AS pageId,
+			  p.title      AS pageTitle,
+			  c.header     AS contentHeader,
+			  c.CType      AS contentType,
+			  c.uid        AS contentId,
+			  c.hidden     AS contentHidden,
+			  c.deleted    AS contentDeleted,
+			  p.hidden     AS pageHidden,
+			  p.deleted    AS pageDeleted
+			FROM tt_content AS c
+			  JOIN pages AS p ON p.uid = c.pid
+			WHERE c.CType LIKE ('%%%s%%');
+			", $contentType, $this->limit));
+		$count = $databaseHandler->sql_num_rows($result);
+		if (!$count) {
+			$this->results[] = new Header('No content elements of type "%s" found', [$contentType]);
+			return;
+		}
+		$this->results[] = new Header('Content elements of type "%s"', [$contentType]);
+		$this->results[] = new KeyValuePair('Total number of content elements', number_format($count));
+		$this->results[] = new KeyValueHeader('pageTitle [id,deleted,hidden]',
+			'contentHeader [id,deleted,hidden,CType]');
+		$i = 0;
+		while ($row = $databaseHandler->sql_fetch_assoc($result)) {
+			$key = $row['pageTitle'];
+			$note = [];
+			$note[] = $row['pageId'];
+			($row['pageDeleted']) ? $note[] = 'd' : '';
+			($row['pageHidden']) ? $note[] = 'h' : '';
+			$key .= ' [' . implode(',', $note) . ']';
+			$value = $row['contentHeader'];
+			$note = [];
+			$note[] = $row['contentId'];
+			($row['contentDeleted']) ? $note[] = 'd' : '';
+			($row['contentHidden']) ? $note[] = 'h' : '';
+			$note[] = $row['contentType'];
+			$value .= ' [' . implode(',', $note) . ']';
+			$this->results[] = new KeyValuePair($key, $value);
+			$i++;
+			if ($i >= $this->limit) {
+				$this->results[] = new Notice('%s records found, increase the "limit" of %s if you want to see more.',
+					[number_format($count), $this->limit]);
+				break;
+			}
+		}
+		$databaseHandler->sql_free_result($result);
+	}
+
+	/**
 	 * Get available plugin elements
 	 */
 	public function getPluginTypes()
@@ -102,8 +176,9 @@ class ContentApiService extends BaseApiService
 		$usage = $this->getPluginUsage();
 		$used = [];
 		$unused = [];
+		$usedKeys = array_keys($usage);
 		foreach ($pluginTypes as $pluginType) {
-			if (in_array($pluginType, array_keys($usage))) {
+			if (in_array($pluginType, $usedKeys)) {
 				$used[$pluginType] = $usage[$pluginType];
 			} else {
 				$unused[$pluginType] = 'unused';
@@ -117,6 +192,64 @@ class ContentApiService extends BaseApiService
 		foreach ($unused as $key => $value) {
 			$this->results[] = new KeyValuePair($key, $value);
 		}
+	}
+
+	/**
+	 * Get plugin type usage
+	 * @param $listType
+	 */
+	public function getPluginTypeUsage($listType)
+	{
+		$databaseHandler = $this->getDatabaseHandler();
+		$result = $databaseHandler->sql_query(sprintf("SELECT
+			  p.uid        AS pageId,
+			  p.title      AS pageTitle,
+			  c.header     AS contentHeader,
+			  c.list_type  AS listType,
+			  c.uid        AS contentId,
+			  c.hidden     AS contentHidden,
+			  c.deleted    AS contentDeleted,
+			  p.hidden     AS pageHidden,
+			  p.deleted    AS pageDeleted
+			FROM tt_content AS c
+			  JOIN pages AS p ON p.uid = c.pid
+			WHERE
+			  CType = 'list'
+			  AND c.list_type LIKE ('%%%s%%');
+			", $listType, $this->limit));
+		$count = $databaseHandler->sql_num_rows($result);
+		if (!$count) {
+			$this->results[] = new Header('No plugins of type "%s" found', [$listType]);
+			return;
+		}
+		$this->results[] = new Header('Plugins of type "%s"', [$listType]);
+		$this->results[] = new KeyValuePair('Total number of plugins', number_format($count));
+		$this->results[] = new KeyValueHeader('pageTitle [id,deleted,hidden]',
+			'contentHeader [id,deleted,hidden,type]');
+		$i = 0;
+		while ($row = $databaseHandler->sql_fetch_assoc($result)) {
+			$key = $row['pageTitle'];
+			$note = [];
+			$note[] = $row['pageId'];
+			($row['pageDeleted']) ? $note[] = 'd' : '';
+			($row['pageHidden']) ? $note[] = 'h' : '';
+			$key .= ' [' . implode(',', $note) . ']';
+			$value = $row['contentHeader'];
+			$note = [];
+			$note[] = $row['contentId'];
+			($row['contentDeleted']) ? $note[] = 'd' : '';
+			($row['contentHidden']) ? $note[] = 'h' : '';
+			$note[] = $row['listType'];
+			$value .= ' [' . implode(',', $note) . ']';
+			$this->results[] = new KeyValuePair($key, $value);
+			$i++;
+			if ($i >= $this->limit) {
+				$this->results[] = new Notice('%s records found, increase the "limit" of %s if you want to see more.',
+					[number_format($count), $this->limit]);
+				break;
+			}
+		}
+		$databaseHandler->sql_free_result($result);
 	}
 
 	/**
@@ -159,7 +292,7 @@ class ContentApiService extends BaseApiService
 			ORDER BY total DESC;"
 		);
 		while ($row = $databaseHandler->sql_fetch_assoc($result)) {
-			$usage[$row['list_type']] = number_format($row['total']);
+			$usage[$row['list_type']] = $row['total'];
 		}
 		$databaseHandler->sql_free_result($result);
 		return $usage;
