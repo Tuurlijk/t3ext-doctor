@@ -23,39 +23,39 @@ namespace MichielRoos\Doctor\Domain\Model;
  */
 class KeyValuePair extends ListItem
 {
-	/**
-	 * @var string
-	 */
-	private $key;
+    /**
+     * @var string
+     */
+    private $key;
 
-	/**
-	 * KeyValuePair constructor.
-	 * @param string $key
-	 * @param string $value
-	 */
-	public function __construct($key = '', $value = '')
-	{
-		if ($key) {
-			$this->setKey($key);
-		}
-		if ($value) {
-			$this->setValue($value);
-		}
-	}
+    /**
+     * KeyValuePair constructor.
+     * @param string $key
+     * @param string $value
+     */
+    public function __construct($key = '', $value = '')
+    {
+        if ($key) {
+            $this->setKey($key);
+        }
+        if ($value) {
+            $this->setValue($value);
+        }
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getKey()
-	{
-		return $this->key;
-	}
+    /**
+     * @return string
+     */
+    public function getKey()
+    {
+        return $this->key;
+    }
 
-	/**
-	 * @param string $key
-	 */
-	public function setKey($key)
-	{
-		$this->key = $key;
-	}
+    /**
+     * @param string $key
+     */
+    public function setKey($key)
+    {
+        $this->key = $key;
+    }
 }

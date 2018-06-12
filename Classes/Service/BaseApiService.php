@@ -23,33 +23,33 @@ namespace MichielRoos\Doctor\Service;
  */
 class BaseApiService
 {
-	/**
-	 * @var array
-	 */
-	protected $results = [];
+    /**
+     * @var array
+     */
+    protected $results = [];
 
-	/**
-	 * @var \TYPO3\CMS\Extbase\Object\ObjectManager
-	 */
-	protected $objectManager;
+    /**
+     * @var \TYPO3\CMS\Extbase\Object\ObjectManager
+     */
+    protected $objectManager;
 
-	/**
-	 * Inject the ObjectManager
-	 *
-	 * @param \TYPO3\CMS\Extbase\Object\ObjectManager $objectManager
-	 */
-	public function injectObjectManager(\TYPO3\CMS\Extbase\Object\ObjectManager $objectManager)
-	{
-		$this->objectManager = $objectManager;
-	}
+    /**
+     * Inject the ObjectManager
+     *
+     * @param \TYPO3\CMS\Extbase\Object\ObjectManager $objectManager
+     */
+    public function injectObjectManager(\TYPO3\CMS\Extbase\Object\ObjectManager $objectManager)
+    {
+        $this->objectManager = $objectManager;
+    }
 
-	/**
-	 * Returns the DatabaseConnection
-	 *
-	 * @return \TYPO3\CMS\Core\Database\DatabaseConnection
-	 */
-	protected function getDatabaseHandler()
-	{
-		return $GLOBALS['TYPO3_DB'];
-	}
+    /**
+     * Returns the DatabaseConnection
+     *
+     * @return \TYPO3\CMS\Core\Database\DatabaseConnection
+     */
+    protected function getDatabaseHandler()
+    {
+        return $GLOBALS['TYPO3_DB'];
+    }
 }

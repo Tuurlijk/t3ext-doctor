@@ -28,61 +28,61 @@ use MichielRoos\Doctor\Domain\Model\ListItem;
  */
 class OverridesApiService extends BaseApiService
 {
-	/**
-	 * Get information about overrides
-	 *
-	 * @return array
-	 */
-	public function getInfo()
-	{
-		$this->results[] = new Header('Overrides and Xclasses');
+    /**
+     * Get information about overrides
+     *
+     * @return array
+     */
+    public function getInfo()
+    {
+        $this->results[] = new Header('Overrides and Xclasses');
 
-		$this->getOldXclassUsageStatus();
-		$this->getObjectOverrideStatus();
+        $this->getOldXclassUsageStatus();
+        $this->getObjectOverrideStatus();
 
-		return $this->results;
-	}
+        return $this->results;
+    }
 
 
-	/**
-	 * Check for usage of old way of implementing XCLASSes
-	 */
-	protected function getOldXclassUsageStatus()
-	{
-		$xclasses = array_merge(
-			(array)$GLOBALS['TYPO3_CONF_VARS']['BE']['XCLASS'],
-			(array)$GLOBALS['TYPO3_CONF_VARS']['FE']['XCLASS']
-		);
+    /**
+     * Check for usage of old way of implementing XCLASSes
+     */
+    protected function getOldXclassUsageStatus()
+    {
+        $xclasses = array_merge(
+            (array)$GLOBALS['TYPO3_CONF_VARS']['BE']['XCLASS'],
+            (array)$GLOBALS['TYPO3_CONF_VARS']['FE']['XCLASS']
+        );
 
-		$numberOfXclasses = count($xclasses);
-		if ($numberOfXclasses > 0) {
-			$this->results[] = new Header('%s Xclasses found', [$numberOfXclasses]);
+        $numberOfXclasses = count($xclasses);
+        if ($numberOfXclasses > 0) {
+            $this->results[] = new Header('%s Xclasses found', [$numberOfXclasses]);
 
-			foreach ($xclasses as $xclass) {
-				$this->results[] = new ListItem($xclass);
-			}
-		}
-	}
+            foreach ($xclasses as $xclass) {
+                $this->results[] = new ListItem($xclass);
+            }
+        }
+    }
 
-	/**
-	 * List any Object overrides registered in the stystem 
-	 */
-	protected function getObjectOverrideStatus()
-	{
-		$xclassFoundArray = [];
-		if (array_key_exists('Objects', $GLOBALS['TYPO3_CONF_VARS']['SYS'])) {
-			foreach ($GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'] as $originalClass => $override) {
-				if (array_key_exists('className', $override)) {
-					$xclassFoundArray[$originalClass] = $override['className'];
-				}
-			}
-		}
-		if (count($xclassFoundArray) > 0) {
-			$this->results[] = new Header('%s Object overrides found:', [$xclassFoundArray]);
-			$this->results[] = new KeyValueHeader('original class', 'override');
-			foreach ($xclassFoundArray as $originalClass => $xClassName) {
-				$this->results[] = new KeyValuePair($originalClass, $xClassName);
-			}
-		}
-	}
+    /**
+     * List any Object overrides registered in the stystem
+     */
+    protected function getObjectOverrideStatus()
+    {
+        $xclassFoundArray = [];
+        if (array_key_exists('Objects', $GLOBALS['TYPO3_CONF_VARS']['SYS'])) {
+            foreach ($GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'] as $originalClass => $override) {
+                if (array_key_exists('className', $override)) {
+                    $xclassFoundArray[$originalClass] = $override['className'];
+                }
+            }
+        }
+        if (count($xclassFoundArray) > 0) {
+            $this->results[] = new Header('%s Object overrides found:', [$xclassFoundArray]);
+            $this->results[] = new KeyValueHeader('original class', 'override');
+            foreach ($xclassFoundArray as $originalClass => $xClassName) {
+                $this->results[] = new KeyValuePair($originalClass, $xClassName);
+            }
+        }
+    }
 }

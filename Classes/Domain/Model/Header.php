@@ -23,40 +23,40 @@ namespace MichielRoos\Doctor\Domain\Model;
  */
 class Header extends ListItem
 {
-	/**
-	 * @var integer
-	 */
-	private $level = 1;
+    /**
+     * @var integer
+     */
+    private $level = 1;
 
-	/**
-	 * Header constructor.
-	 * @param string $value
-	 * @param array $valueArguments
-	 * @param int $level
-	 */
-	public function __construct($value = '', $valueArguments = [], $level = 1)
-	{
-		if ($value) {
-			if ($valueArguments !== array()) {
-				$value = vsprintf($value, $valueArguments);
-			}
-			$this->setValue($value);
-		}
-	}
+    /**
+     * Header constructor.
+     * @param string $value
+     * @param array $valueArguments
+     * @param int $level
+     */
+    public function __construct($value = '', $valueArguments = [], $level = 1)
+    {
+        if ($value) {
+            if ($valueArguments !== array()) {
+                $value = vsprintf($value, $valueArguments);
+            }
+            $this->setValue($value);
+        }
+    }
 
-	/**
-	 * @return int
-	 */
-	public function getLevel()
-	{
-		return $this->level;
-	}
+    /**
+     * @return int
+     */
+    public function getLevel()
+    {
+        return $this->level;
+    }
 
-	/**
-	 * @param int $level
-	 */
-	public function setLevel($level)
-	{
-		$this->level = $level;
-	}
+    /**
+     * @param int $level
+     */
+    public function setLevel($level)
+    {
+        $this->level = $level;
+    }
 }

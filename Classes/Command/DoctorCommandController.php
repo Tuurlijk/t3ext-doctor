@@ -30,116 +30,116 @@ use MichielRoos\Doctor\Service\TyposcriptApiService;
  */
 class DoctorCommandController extends BaseCommandController
 {
-	/**
-	 * @var \MichielRoos\Doctor\Service\CacheApiService
-	 */
-	protected $cacheApiService;
+    /**
+     * @var \MichielRoos\Doctor\Service\CacheApiService
+     */
+    protected $cacheApiService;
 
-	/**
-	 * @var \MichielRoos\Doctor\Service\ContentApiService
-	 */
-	protected $contentApiService;
+    /**
+     * @var \MichielRoos\Doctor\Service\ContentApiService
+     */
+    protected $contentApiService;
 
-	/**
-	 * @var \MichielRoos\Doctor\Service\DatabaseApiService
-	 */
-	protected $databaseApiService;
+    /**
+     * @var \MichielRoos\Doctor\Service\DatabaseApiService
+     */
+    protected $databaseApiService;
 
-	/**
-	 * @var \MichielRoos\Doctor\Service\TyposcriptApiService
-	 */
-	protected $typoscriptApiService;
+    /**
+     * @var \MichielRoos\Doctor\Service\TyposcriptApiService
+     */
+    protected $typoscriptApiService;
 
-	/**
-	 * @var \MichielRoos\Doctor\Service\SiteApiService
-	 */
-	protected $siteApiService;
+    /**
+     * @var \MichielRoos\Doctor\Service\SiteApiService
+     */
+    protected $siteApiService;
 
-	/**
-	 * @var \MichielRoos\Doctor\Service\OverridesApiService
-	 */
-	protected $overridesApiService;
+    /**
+     * @var \MichielRoos\Doctor\Service\OverridesApiService
+     */
+    protected $overridesApiService;
 
-	/**
-	 * Information about the whole system
-	 */
-	public function infoCommand()
-	{
-		$this->siteCommand();
-		$this->databaseCommand();
-		$this->typoscriptCommand();
-		$this->contentCommand();
-		$this->cacheCommand();
-		$this->overridesCommand();
-	}
+    /**
+     * Information about the whole system
+     */
+    public function infoCommand()
+    {
+        $this->siteCommand();
+        $this->databaseCommand();
+        $this->typoscriptCommand();
+        $this->contentCommand();
+        $this->cacheCommand();
+        $this->overridesCommand();
+    }
 
-	/**
-	 * Cache information
-	 */
-	public function cacheCommand()
-	{
-		$this->cacheApiService = $this->objectManager->get(CacheApiService::class);
-		$results = $this->cacheApiService->getInfo();
-		$this->writeResults($results);
-	}
+    /**
+     * Cache information
+     */
+    public function cacheCommand()
+    {
+        $this->cacheApiService = $this->objectManager->get(CacheApiService::class);
+        $results = $this->cacheApiService->getInfo();
+        $this->writeResults($results);
+    }
 
-	/**
-	 * Content information
-	 *
-	 * @param string $contentType The content type (CType) to inspect
-	 * @param string $listType The list type (plugin) to inspect
-	 * @param int $limit Show up to [limit] records found
-	 * @throws \TYPO3\CMS\Core\Error\Http\ServiceUnavailableException
-	 */
-	public function contentCommand($contentType = null, $listType = null, $limit = null)
-	{
-		$this->contentApiService = $this->objectManager->get(ContentApiService::class);
-		$results = $this->contentApiService->getInfo($contentType, $listType, $limit);
-		$this->writeResults($results);
-	}
+    /**
+     * Content information
+     *
+     * @param string $contentType The content type (CType) to inspect
+     * @param string $listType The list type (plugin) to inspect
+     * @param int $limit Show up to [limit] records found
+     * @throws \TYPO3\CMS\Core\Error\Http\ServiceUnavailableException
+     */
+    public function contentCommand($contentType = null, $listType = null, $limit = null)
+    {
+        $this->contentApiService = $this->objectManager->get(ContentApiService::class);
+        $results = $this->contentApiService->getInfo($contentType, $listType, $limit);
+        $this->writeResults($results);
+    }
 
-	/**
-	 * Database information
-	 *
-	 * @param int $limit The limit to use in top [n] table queries
-	 * @param string $table The table to inspect
-	 */
-	public function databaseCommand($limit = 30, $table = NULL)
-	{
-		$this->databaseApiService = $this->objectManager->get(DatabaseApiService::class);
-		$results = $this->databaseApiService->getInfo($limit, $table);
-		$this->writeResults($results);
-	}
+    /**
+     * Database information
+     *
+     * @param int $limit The limit to use in top [n] table queries
+     * @param string $table The table to inspect
+     */
+    public function databaseCommand($limit = 30, $table = null)
+    {
+        $this->databaseApiService = $this->objectManager->get(DatabaseApiService::class);
+        $results = $this->databaseApiService->getInfo($limit, $table);
+        $this->writeResults($results);
+    }
 
-	/**
-	 * Overrides information
-	 */
-	public function overridesCommand()
-	{
-		$this->overridesApiService = $this->objectManager->get(OverridesApiService::class);
-		$results = $this->overridesApiService->getInfo();
-		$this->writeResults($results);
-	}
+    /**
+     * Overrides information
+     */
+    public function overridesCommand()
+    {
+        $this->overridesApiService = $this->objectManager->get(OverridesApiService::class);
+        $results = $this->overridesApiService->getInfo();
+        $this->writeResults($results);
+    }
 
-	/**
-	 * System information
-	 */
-	public function siteCommand()
-	{
-		$this->siteApiService = $this->objectManager->get(SiteApiService::class);
-		$results = $this->siteApiService->getInfo();
-		$this->writeResults($results);
-	}
+    /**
+     * System information
+     */
+    public function siteCommand()
+    {
+        $this->siteApiService = $this->objectManager->get(SiteApiService::class);
+        $results = $this->siteApiService->getInfo();
+        $this->writeResults($results);
+    }
 
-	/**
-	 * Typoscript information
-	 * @param string $key Typoscript object key used for object size report
-	 * @throws \TYPO3\CMS\Core\Error\Http\ServiceUnavailableException
-	 */
-	public function typoscriptCommand($key = null)
-	{
-		$this->typoscriptApiService = $this->objectManager->get(TyposcriptApiService::class);
-		$results = $this->typoscriptApiService->getInfo($key);
-		$this->writeResults($results);
-	}
+    /**
+     * Typoscript information
+     * @param string $key Typoscript object key used for object size report
+     * @throws \TYPO3\CMS\Core\Error\Http\ServiceUnavailableException
+     */
+    public function typoscriptCommand($key = null)
+    {
+        $this->typoscriptApiService = $this->objectManager->get(TyposcriptApiService::class);
+        $results = $this->typoscriptApiService->getInfo($key);
+        $this->writeResults($results);
+    }
 }

@@ -26,19 +26,19 @@ use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
  */
 class TyposcriptUtility
 {
-	/**
-	 * Find page that is marked as 'is_siteroot', preferabley with a domain record attached. If that is not available,
-	 * then find the first page with a domain record attached. Default to pid 1 if that exists.
-	 *
-	 * @return int
-	 */
-	public static function getRootPageId()
-	{
-		$uid = 1;
-		$databaseHandler = self::getDatabaseHandler();
-		// Fetch all available domains
-		$result = $databaseHandler->sql_query(
-			'SELECT
+    /**
+     * Find page that is marked as 'is_siteroot', preferabley with a domain record attached. If that is not available,
+     * then find the first page with a domain record attached. Default to pid 1 if that exists.
+     *
+     * @return int
+     */
+    public static function getRootPageId()
+    {
+        $uid = 1;
+        $databaseHandler = self::getDatabaseHandler();
+        // Fetch all available domains
+        $result = $databaseHandler->sql_query(
+            'SELECT
 			  d.pid,
 			  d.domainName
 			FROM
@@ -46,21 +46,21 @@ class TyposcriptUtility
 			WHERE
 			  d.hidden = 0
 			ORDER BY d.pid, d.sorting;'
-		);
-		$domains = [];
-		while ($row = $databaseHandler->sql_fetch_assoc($result)) {
-			$domains[$row['domainName']] = $row['pid'];
-		}
-		$databaseHandler->sql_free_result($result);
+        );
+        $domains = [];
+        while ($row = $databaseHandler->sql_fetch_assoc($result)) {
+            $domains[$row['domainName']] = $row['pid'];
+        }
+        $databaseHandler->sql_free_result($result);
 
-		// Fetch pages with domains on them and site roots and page with uid 1
-		if (count($domains)) {
-			$domainIds = array_unique($domains);
-		} else {
-			$domainIds[] = 1;
-		}
-		$result = $databaseHandler->sql_query(
-			"SELECT
+        // Fetch pages with domains on them and site roots and page with uid 1
+        if (count($domains)) {
+            $domainIds = array_unique($domains);
+        } else {
+            $domainIds[] = 1;
+        }
+        $result = $databaseHandler->sql_query(
+            "SELECT
 			  p.uid,
 			  p.is_siteroot
 			FROM
@@ -70,63 +70,63 @@ class TyposcriptUtility
 			  AND p.hidden = 0
 			  AND (p.is_siteroot = 1 OR p.uid = 1 OR p.uid IN(" . implode(',', $domainIds) . "))
 			ORDER BY p.is_siteroot DESC;"
-		);
-		$pages = [];
-		$siteRoots = [];
-		$siteRootsWithDomain = [];
-		while ($row = $databaseHandler->sql_fetch_assoc($result)) {
-			if ($row['is_siteroot']) {
-				$uid = $row['uid'];
-				$siteRoots[] = $row['uid'];
-				if (in_array($uid, $domains)) {
-					$siteRootsWithDomain[] = $uid;
-				}
-			} else {
-				$pages[] = $row['uid'];
-			}
-		}
-		$databaseHandler->sql_free_result($result);
-		if (count($siteRootsWithDomain)) {
-			$uid = array_pop($siteRootsWithDomain);
-		} elseif (count($siteRoots)) {
-			$uid = array_pop($siteRoots);
-		} elseif (in_array(1, $pages)) {
-			$uid = 1;
-		}
-		return (int)$uid;
-	}
+        );
+        $pages = [];
+        $siteRoots = [];
+        $siteRootsWithDomain = [];
+        while ($row = $databaseHandler->sql_fetch_assoc($result)) {
+            if ($row['is_siteroot']) {
+                $uid = $row['uid'];
+                $siteRoots[] = $row['uid'];
+                if (in_array($uid, $domains)) {
+                    $siteRootsWithDomain[] = $uid;
+                }
+            } else {
+                $pages[] = $row['uid'];
+            }
+        }
+        $databaseHandler->sql_free_result($result);
+        if (count($siteRootsWithDomain)) {
+            $uid = array_pop($siteRootsWithDomain);
+        } elseif (count($siteRoots)) {
+            $uid = array_pop($siteRoots);
+        } elseif (in_array(1, $pages)) {
+            $uid = 1;
+        }
+        return (int)$uid;
+    }
 
-	/**
-	 * Setup Typoscript Frontend controller
-	 * @throws \TYPO3\CMS\Core\Error\Http\ServiceUnavailableException
-	 */
-	public static function setupTsfe()
-	{
-		$GLOBALS['TT'] = new \TYPO3\CMS\Core\TimeTracker\NullTimeTracker();
+    /**
+     * Setup Typoscript Frontend controller
+     * @throws \TYPO3\CMS\Core\Error\Http\ServiceUnavailableException
+     */
+    public static function setupTsfe()
+    {
+        $GLOBALS['TT'] = new \TYPO3\CMS\Core\TimeTracker\NullTimeTracker();
 
-		$tsfe = GeneralUtility::makeInstance(
-			TypoScriptFrontendController::class,
-			$GLOBALS['TYPO3_CONF_VARS'],
-			self::getRootPageId(),
-			0
-		);
+        $tsfe = GeneralUtility::makeInstance(
+            TypoScriptFrontendController::class,
+            $GLOBALS['TYPO3_CONF_VARS'],
+            self::getRootPageId(),
+            0
+        );
 
-		$GLOBALS['TSFE'] = $tsfe;
+        $GLOBALS['TSFE'] = $tsfe;
 
-		$tsfe->connectToDB();
-		$tsfe->initFEuser();
-		$tsfe->determineId();
-		$tsfe->initTemplate();
-		$tsfe->getConfigArray();
-	}
-	
-	/**
-	 * Returns the DatabaseConnection
-	 *
-	 * @return \TYPO3\CMS\Core\Database\DatabaseConnection
-	 */
-	protected function getDatabaseHandler()
-	{
-		return $GLOBALS['TYPO3_DB'];
-	}
+        $tsfe->connectToDB();
+        $tsfe->initFEuser();
+        $tsfe->determineId();
+        $tsfe->initTemplate();
+        $tsfe->getConfigArray();
+    }
+
+    /**
+     * Returns the DatabaseConnection
+     *
+     * @return \TYPO3\CMS\Core\Database\DatabaseConnection
+     */
+    protected function getDatabaseHandler()
+    {
+        return $GLOBALS['TYPO3_DB'];
+    }
 }

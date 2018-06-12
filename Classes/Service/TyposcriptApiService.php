@@ -33,33 +33,33 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  */
 class TyposcriptApiService extends BaseApiService
 {
-	/**
-	 * Typoscript information
-	 *
-	 * @param string $key
-	 * @return array
-	 * @throws \TYPO3\CMS\Core\Error\Http\ServiceUnavailableException
-	 */
-	public function getInfo($key = null)
-	{
-		$this->results[] = new Header('Typoscript information');
+    /**
+     * Typoscript information
+     *
+     * @param string $key
+     * @return array
+     * @throws \TYPO3\CMS\Core\Error\Http\ServiceUnavailableException
+     */
+    public function getInfo($key = null)
+    {
+        $this->results[] = new Header('Typoscript information');
 
-		$this->listTyposcriptTemplates();
-		$this->getTyposcriptObjectSizes($key);
+        $this->listTyposcriptTemplates();
+        $this->getTyposcriptObjectSizes($key);
 
-		return $this->results;
-	}
+        return $this->results;
+    }
 
-	/**
-	 * List Typoscript templates
-	 */
-	public function listTyposcriptTemplates()
-	{
-		$extTemplates = 0;
-		$rootTemplatesOutsideSiteRoots = 0;
-		$databaseHandler = $this->getDatabaseHandler();
-		$result = $databaseHandler->sql_query(
-			"SELECT
+    /**
+     * List Typoscript templates
+     */
+    public function listTyposcriptTemplates()
+    {
+        $extTemplates = 0;
+        $rootTemplatesOutsideSiteRoots = 0;
+        $databaseHandler = $this->getDatabaseHandler();
+        $result = $databaseHandler->sql_query(
+            "SELECT
 			  t.pid,
 			  p.title AS pageTitle,
 			  t.root,
@@ -79,89 +79,89 @@ class TyposcriptApiService extends BaseApiService
 			  AND t.hidden = 0
 			ORDER BY p.is_siteroot DESC, t.root DESC;");
 
-		$resultCount = $databaseHandler->sql_num_rows($result);
-		$this->results[] = new Header('Typoscript templates found: %s', [$resultCount]);
+        $resultCount = $databaseHandler->sql_num_rows($result);
+        $this->results[] = new Header('Typoscript templates found: %s', [$resultCount]);
 
-		$this->results[] = new KeyValueHeader('Page title [uid]', 'Template title [uid]');
-		while ($row = $databaseHandler->sql_fetch_assoc($result)) {
-			if ((int)$row['root'] === 1 && (int)$row['is_siteroot'] === 0) {
-				$rootTemplatesOutsideSiteRoots++;
-			}
-			if ((int)$row['root'] === 0) {
-				$extTemplates++;
-			}
-			$key = $row['pageTitle'];
-			if ($row['is_siteroot']) {
-				$key .= ' [' . $row['pid'] . ', site root]';
-			} else {
-				$key .= ' [' . $row['pid'] . ']';
-			}
-			$value = $row['title'];
-			if ($row['root']) {
-				$value .= ' [' . $row['uid'] . ', root]';
-			} else {
-				$value .= ' [' . $row['uid'] . ']';
-			}
-			$this->results[] = new KeyValuePair($key, $value);
-		}
-		$databaseHandler->sql_free_result($result);
-		if ($extTemplates > 5) {
-			$this->results[] = new Suggestion('Site has %s extended Typoscript templates. Do you actually need all these templates?',
-				[$extTemplates]);
-		}
-		if ($rootTemplatesOutsideSiteRoots) {
-			$this->results[] = new Suggestion('Site has %s root Typoscript templates that are outside of actual siteroot pages. Is this intended?',
-				[$rootTemplatesOutsideSiteRoots]);
-		}
-	}
+        $this->results[] = new KeyValueHeader('Page title [uid]', 'Template title [uid]');
+        while ($row = $databaseHandler->sql_fetch_assoc($result)) {
+            if ((int)$row['root'] === 1 && (int)$row['is_siteroot'] === 0) {
+                $rootTemplatesOutsideSiteRoots++;
+            }
+            if ((int)$row['root'] === 0) {
+                $extTemplates++;
+            }
+            $key = $row['pageTitle'];
+            if ($row['is_siteroot']) {
+                $key .= ' [' . $row['pid'] . ', site root]';
+            } else {
+                $key .= ' [' . $row['pid'] . ']';
+            }
+            $value = $row['title'];
+            if ($row['root']) {
+                $value .= ' [' . $row['uid'] . ', root]';
+            } else {
+                $value .= ' [' . $row['uid'] . ']';
+            }
+            $this->results[] = new KeyValuePair($key, $value);
+        }
+        $databaseHandler->sql_free_result($result);
+        if ($extTemplates > 5) {
+            $this->results[] = new Suggestion('Site has %s extended Typoscript templates. Do you actually need all these templates?',
+                [$extTemplates]);
+        }
+        if ($rootTemplatesOutsideSiteRoots) {
+            $this->results[] = new Suggestion('Site has %s root Typoscript templates that are outside of actual siteroot pages. Is this intended?',
+                [$rootTemplatesOutsideSiteRoots]);
+        }
+    }
 
-	/**
-	 * Get Typoscript object sizes
-	 * @param null $key
-	 * @throws \TYPO3\CMS\Core\Error\Http\ServiceUnavailableException
-	 */
-	public function getTyposcriptObjectSizes($key = null)
-	{
-		$this->results[] = new Header('Typoscript object sizes (strlen of serialized object)');
-		TyposcriptUtility::setupTsfe();
-		if ($key) {
-			$setup = $this->getSetupByKey($key);
-			if (!count($setup)) {
-				$this->results[] = new Notice('Typoscript object not found for key "%s"', [$key]);
-				return;
-			}
-			$this->results[] = new Notice('Report for objects within key "%s"', [$key]);
-		} else {
-			$setup = $GLOBALS['TSFE']->tmpl->setup;
-		}
-		$objects = ArrayUtility::dots(array_keys($setup));
-		$objectsBySize = [];
-		foreach ($objects as $object) {
-			$objectsBySize[$object] = strlen(serialize($setup[$object]));
-		}
-		arsort($objectsBySize);
+    /**
+     * Get Typoscript object sizes
+     * @param null $key
+     * @throws \TYPO3\CMS\Core\Error\Http\ServiceUnavailableException
+     */
+    public function getTyposcriptObjectSizes($key = null)
+    {
+        $this->results[] = new Header('Typoscript object sizes (strlen of serialized object)');
+        TyposcriptUtility::setupTsfe();
+        if ($key) {
+            $setup = $this->getSetupByKey($key);
+            if (!count($setup)) {
+                $this->results[] = new Notice('Typoscript object not found for key "%s"', [$key]);
+                return;
+            }
+            $this->results[] = new Notice('Report for objects within key "%s"', [$key]);
+        } else {
+            $setup = $GLOBALS['TSFE']->tmpl->setup;
+        }
+        $objects = ArrayUtility::dots(array_keys($setup));
+        $objectsBySize = [];
+        foreach ($objects as $object) {
+            $objectsBySize[$object] = strlen(serialize($setup[$object]));
+        }
+        arsort($objectsBySize);
 
-		foreach ($objectsBySize as $key => $value) {
-			$this->results[] = new KeyValuePair($key, GeneralUtility::formatSize($value));
-		}
-	}
+        foreach ($objectsBySize as $key => $value) {
+            $this->results[] = new KeyValuePair($key, GeneralUtility::formatSize($value));
+        }
+    }
 
-	/**
-	 * Get part of the TSFE by key
-	 *
-	 * @param $key
-	 * @return array
-	 */
-	private function getSetupByKey($key)
-	{
-		$setup = [];
-		$keyParts = explode('.', rtrim($key, '.'));
-		if (count($keyParts)) {
-			$setup = $GLOBALS['TSFE']->tmpl->setup;
-			foreach ($keyParts as $keyPart) {
-				$setup = $setup[$keyPart . '.'];
-			}
-		}
-		return $setup;
-	}
+    /**
+     * Get part of the TSFE by key
+     *
+     * @param $key
+     * @return array
+     */
+    private function getSetupByKey($key)
+    {
+        $setup = [];
+        $keyParts = explode('.', rtrim($key, '.'));
+        if (count($keyParts)) {
+            $setup = $GLOBALS['TSFE']->tmpl->setup;
+            foreach ($keyParts as $keyPart) {
+                $setup = $setup[$keyPart . '.'];
+            }
+        }
+        return $setup;
+    }
 }

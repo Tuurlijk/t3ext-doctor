@@ -23,39 +23,39 @@ namespace MichielRoos\Doctor\Domain\Model;
  */
 class ListItem
 {
-	/**
-	 * @var string
-	 */
-	protected $value;
+    /**
+     * @var string
+     */
+    protected $value;
 
-	/**
-	 * ListItem constructor.
-	 * @param string $value
-	 * @param array $valueArguments
-	 */
-	public function __construct($value = '', $valueArguments = [])
-	{
-		if ($value) {
-			if ($valueArguments !== array()) {
-				$value = vsprintf($value, $valueArguments);
-			}
-			$this->setValue($value);
-		}
-	}
+    /**
+     * ListItem constructor.
+     * @param string $value
+     * @param array $valueArguments
+     */
+    public function __construct($value = '', $valueArguments = [])
+    {
+        if ($value) {
+            if ($valueArguments !== array()) {
+                $value = vsprintf($value, $valueArguments);
+            }
+            $this->setValue($value);
+        }
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getValue()
-	{
-		return $this->value;
-	}
+    /**
+     * @return string
+     */
+    public function getValue()
+    {
+        return $this->value;
+    }
 
-	/**
-	 * @param string $value
-	 */
-	public function setValue($value)
-	{
-		$this->value = $value;
-	}
+    /**
+     * @param string $value
+     */
+    public function setValue($value)
+    {
+        $this->value = $value;
+    }
 }

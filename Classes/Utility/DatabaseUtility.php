@@ -23,49 +23,49 @@ namespace MichielRoos\Doctor\Utility;
  */
 class DatabaseUtility
 {
-	/**
-	 * Get database size.
-	 */
-	public static function getDatabaseSize()
-	{
-		$databaseHandler = self::getDatabaseHandler();
-		$result = $databaseHandler->sql_query("SELECT SUM( data_length + index_length ) AS size FROM information_schema.TABLES WHERE table_schema = '" . TYPO3_db . "'");
-		$row = $databaseHandler->sql_fetch_assoc($result);
-		$databaseHandler->sql_free_result($result);
-		return array_pop($row);
-	}
+    /**
+     * Get database size.
+     */
+    public static function getDatabaseSize()
+    {
+        $databaseHandler = self::getDatabaseHandler();
+        $result = $databaseHandler->sql_query("SELECT SUM( data_length + index_length ) AS size FROM information_schema.TABLES WHERE table_schema = '" . TYPO3_db . "'");
+        $row = $databaseHandler->sql_fetch_assoc($result);
+        $databaseHandler->sql_free_result($result);
+        return array_pop($row);
+    }
 
-	/**
-	 * Get table size.
-	 * @param string $table
-	 * @return int
-	 */
-	public static function getTableSize($table = '')
-	{
-		$size = 0;
-		if (!$table) {
-			return $size;
-		}
-		$databaseHandler = self::getDatabaseHandler();
-		$result = $databaseHandler->sql_query(
-			sprintf(
-				"SELECT data_length + index_length AS size FROM information_schema.TABLES WHERE table_name = '%s' AND  table_schema = '%s'",
-				mysqli_real_escape_string(self::getDatabaseHandler()->getDatabaseHandle(), $table),
-				TYPO3_db
-			));
-		$row = $databaseHandler->sql_fetch_assoc($result);
-		$size = array_pop($row);
-		$databaseHandler->sql_free_result($result);
-		return $size;
-	}
+    /**
+     * Get table size.
+     * @param string $table
+     * @return int
+     */
+    public static function getTableSize($table = '')
+    {
+        $size = 0;
+        if (!$table) {
+            return $size;
+        }
+        $databaseHandler = self::getDatabaseHandler();
+        $result = $databaseHandler->sql_query(
+            sprintf(
+                "SELECT data_length + index_length AS size FROM information_schema.TABLES WHERE table_name = '%s' AND  table_schema = '%s'",
+                mysqli_real_escape_string(self::getDatabaseHandler()->getDatabaseHandle(), $table),
+                TYPO3_db
+            ));
+        $row = $databaseHandler->sql_fetch_assoc($result);
+        $size = array_pop($row);
+        $databaseHandler->sql_free_result($result);
+        return $size;
+    }
 
-	/**
-	 * Returns the DatabaseConnection
-	 *
-	 * @return \TYPO3\CMS\Core\Database\DatabaseConnection
-	 */
-	protected function getDatabaseHandler()
-	{
-		return $GLOBALS['TYPO3_DB'];
-	}
+    /**
+     * Returns the DatabaseConnection
+     *
+     * @return \TYPO3\CMS\Core\Database\DatabaseConnection
+     */
+    protected function getDatabaseHandler()
+    {
+        return $GLOBALS['TYPO3_DB'];
+    }
 }
