@@ -99,6 +99,17 @@ class DoctorCommandController extends BaseCommandController
     }
 
     /**
+     * Cruft Count; show amount and percentage of deleted and hidden records
+     *
+     */
+    public function cruftCountCommand()
+    {
+        $this->databaseApiService = $this->objectManager->get(DatabaseApiService::class);
+        $results = $this->databaseApiService->getCruftCount();
+        $this->writeResults($results);
+    }
+
+    /**
      * Database information
      *
      * @param int $limit The limit to use in top [n] table queries

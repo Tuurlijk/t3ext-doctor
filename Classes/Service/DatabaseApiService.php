@@ -24,6 +24,7 @@ use MichielRoos\Doctor\Domain\Model\ListItem;
 use MichielRoos\Doctor\Domain\Model\Notice;
 use MichielRoos\Doctor\Domain\Model\Suggestion;
 use MichielRoos\Doctor\Utility\ArrayUtility;
+use MichielRoos\Doctor\Utility\DatabaseUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -81,12 +82,31 @@ class DatabaseApiService extends BaseApiService
             }
             if ($this->tableHasColumn('deleted')) {
                 $this->getDeletedRecords();
+                $this->getRecordAge('deleted = 1', 'Deleted record');
             }
             if ($this->tableHasColumn('hidden')) {
                 $this->getHiddenRecords();
+                $this->getRecordAge('hidden = 1', 'Hidden record');
             }
         }
 
+        return $this->results;
+    }
+
+    /**
+     * Get cruft count; show hidden and deleted records count and percentage
+     */
+    public function getCruftCount()
+    {
+        $tablesAndCount = DatabaseUtility::getTablesAndRecordCount();
+        foreach ($tablesAndCount as $table => $rows) {
+            if (DatabaseUtility::tableHasColumn($table, 'deleted')) {
+                $this->getDeletedRecords($table, (int)$rows);
+            }
+            if (DatabaseUtility::tableHasColumn($table, 'hidden')) {
+                $this->getHiddenRecords($table, (int)$rows);
+            }
+        }
         return $this->results;
     }
 
@@ -105,17 +125,24 @@ class DatabaseApiService extends BaseApiService
 
     /**
      * Get deleted records
+     *
+     * @param string $table
+     * @param integer $tableRowCount
      */
-    public function getDeletedRecords()
+    public function getDeletedRecords($table = null, $tableRowCount = null)
     {
+        if ($table === null) {
+            $table = $this->table;
+        }
         $databaseHandler = $this->getDatabaseHandler();
-        $this->results[] = new Header('Deleted records for table %s', [$this->table]);
+        $this->results[] = new Header('Deleted records for table %s', [$table]);
 
-        $tableRowCount = $this->getTableRowCount();
+        if ($tableRowCount === null) {
+            $tableRowCount = $this->getTableRowCount();
+        }
         $this->results[] = new KeyValuePair('total records', number_format($tableRowCount));
 
-        $result = $databaseHandler->sql_query(sprintf('SELECT COUNT(*) as total FROM %s WHERE deleted = 1',
-            $this->table));
+        $result = $databaseHandler->sql_query(sprintf('SELECT COUNT(*) as total FROM %s WHERE deleted = 1', $table));
         $row = $databaseHandler->sql_fetch_assoc($result);
         $databaseHandler->sql_free_result($result);
         if ($row['total'] > 0) {
@@ -125,22 +152,30 @@ class DatabaseApiService extends BaseApiService
                 number_format($row['total']) . ' - ' . number_format($percentage, 2) . '%'
             );
         }
-        $this->getRecordAge('deleted = 1', 'Deleted record');
     }
 
     /**
      * Get hidden records
+     *
+     * @param string $table
+     * @param integer $tableRowCount
      */
-    public function getHiddenRecords()
+    public function getHiddenRecords($table = null, $tableRowCount = null)
     {
-        $databaseHandler = $this->getDatabaseHandler();
-        $this->results[] = new Header('Hidden records for table %s', [$this->table]);
+        if ($table === null) {
+            $table = $this->table;
+        }
 
-        $tableRowCount = $this->getTableRowCount();
+        $databaseHandler = $this->getDatabaseHandler();
+        $this->results[] = new Header('Hidden records for table %s', [$table]);
+
+        if ($tableRowCount === null) {
+            $tableRowCount = $this->getTableRowCount();
+        }
         $this->results[] = new KeyValuePair('total records', number_format($tableRowCount));
 
         $result = $databaseHandler->sql_query(sprintf('SELECT COUNT(*) as total FROM %s WHERE hidden = 1',
-            $this->table));
+            $table));
         $row = $databaseHandler->sql_fetch_assoc($result);
         $databaseHandler->sql_free_result($result);
         if ($row['total'] > 0) {
@@ -150,7 +185,6 @@ class DatabaseApiService extends BaseApiService
                 number_format($row['total']) . ' - ' . number_format($percentage, 2) . '%'
             );
         }
-        $this->getRecordAge('hidden = 1', 'Hidden record');
     }
 
     /**
@@ -248,27 +282,20 @@ class DatabaseApiService extends BaseApiService
     public function getLargestTablesByRecordCount()
     {
         $showSuggestion = false;
-        $databaseHandler = $this->getDatabaseHandler();
-        $result = $databaseHandler->sql_query(
-            "SELECT
-			  TABLE_NAME as `table`,
-			  TABLE_ROWS as `rows`
-			FROM
-			  INFORMATION_SCHEMA.TABLES
-			WHERE
-			  TABLE_SCHEMA = '" . TYPO3_db . "'
-			ORDER BY
-			  rows DESC, `table`
-			LIMIT " . (int)$this->limit . ";");
+        $tablesAndCount = DatabaseUtility::getTablesAndRecordCount();
         $this->results[] = new Header('%s Largest tables by record count', [$this->limit]);
 
-        while ($row = $databaseHandler->sql_fetch_assoc($result)) {
-            $this->results[] = new KeyValuePair($row['table'], number_format($row['rows']));
-            if ($row['rows'] > 1000000) {
+        $i = 0;
+        foreach ($tablesAndCount as $table => $rows) {
+            $this->results[] = new KeyValuePair($table, number_format($rows));
+            if ($rows > 1000000) {
                 $showSuggestion = true;
             }
+            $i++;
+            if ($i >= $this->limit) {
+                break;
+            }
         }
-        $databaseHandler->sql_free_result($result);
         if ($showSuggestion) {
             $this->results[] = new Suggestion('One ore more tables have more than a million records. This is quite a lot for a table, inspect the tables and see if you can reduce their size.');
         }

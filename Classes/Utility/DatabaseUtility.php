@@ -60,6 +60,60 @@ class DatabaseUtility
     }
 
     /**
+     * Get tables and record count.
+     * @return array
+     */
+    public static function getTablesAndRecordCount()
+    {
+        $tableAndCount = [];
+        $databaseHandler = self::getDatabaseHandler();
+        $result = $databaseHandler->sql_query(
+            "SELECT
+			  TABLE_NAME as `table`,
+			  TABLE_ROWS as `rows`
+			FROM
+			  INFORMATION_SCHEMA.TABLES
+			WHERE
+			  TABLE_SCHEMA = '" . TYPO3_db . "'
+			ORDER BY
+			  rows DESC, `table`");
+
+        while ($row = $databaseHandler->sql_fetch_assoc($result)) {
+            $tableAndCount[$row['table']] = $row['rows'];
+        }
+        $databaseHandler->sql_free_result($result);
+        return $tableAndCount;
+    }
+
+    /**
+     * Check if a table has a column
+     * @param $table
+     * @param $column
+     * @return boolean
+     */
+    public static function tableHasColumn($table, $column)
+    {
+        $databaseHandler = self::getDatabaseHandler();
+        $result = $databaseHandler->sql_query(
+            sprintf("SELECT
+                        `COLUMN_NAME` 
+                    FROM
+                        `INFORMATION_SCHEMA`.`COLUMNS` 
+                    WHERE
+                        `TABLE_SCHEMA`='%s' 
+                    AND
+                        `COLUMN_NAME`='%s' 
+                    AND
+                        `TABLE_NAME`='%s';",
+                TYPO3_db,
+                mysqli_real_escape_string($databaseHandler->getDatabaseHandle(), $column),
+                mysqli_real_escape_string($databaseHandler->getDatabaseHandle(), $table)
+            ));
+
+        return self::getDatabaseHandler()->sql_num_rows($result) === 1;
+    }
+
+    /**
      * Returns the DatabaseConnection
      *
      * @return \TYPO3\CMS\Core\Database\DatabaseConnection

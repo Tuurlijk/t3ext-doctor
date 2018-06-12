@@ -21,6 +21,9 @@ EXTENSION "DOCTOR":
   doctor:info                              Information about the whole system
   doctor:cache                             Cache information
   doctor:content                           Content information
+  doctor:cruftcount                        Cruft Count; show amount and
+                                           percentage of deleted and hidden
+                                           records
   doctor:database                          Database information
   doctor:overrides                         Overrides information
   doctor:site                              System information
@@ -36,17 +39,122 @@ Example result part:
 ```apacheconfig
 Record age for table pages
 -------------------------------------------------------------------------------
-  total records                            59,611
-  Older than 1 years                       24,701 - 41.44%
-  Older than 2 years                       11,191 - 18.77%
-  Older than 3 years                       7,893 - 13.24%
-  Older than 4 years                       3,321 - 5.57%
-  Older than 5 years                       1,010 - 1.69%
+  total                                    60,482
+  Younger than 1 year                      34,402 - 56.88%
+  Older than 1 years                       26,080 - 43.12%
+  Older than 2 years                       11,270 - 18.63%
+  Older than 3 years                       8,064 - 13.33%
+  Older than 4 years                       3,362 - 5.56%
+  Older than 5 years                       1,046 - 1.73%
 
 Deleted records for table pages
 -------------------------------------------------------------------------------
-  total records                            59,611
-  deleted records                          13,571 - 22.77%
+  total records                            60,482
+  deleted records                          14,352 - 23.73%
+
+Deleted record age for table pages
+-------------------------------------------------------------------------------
+  total                                    14,352
+  Younger than 1 year                      12,218 - 85.13%
+  Older than 1 years                       2,134 - 14.87%
+
+Hidden records for table pages
+-------------------------------------------------------------------------------
+  total records                            60,482
+  hidden records                           7,355 - 12.16%
+
+Hidden record age for table pages
+-------------------------------------------------------------------------------
+  total                                    7,355
+  Younger than 1 year                      5,368 - 72.98%
+  Older than 1 years                       1,987 - 27.02%
+  Older than 2 years                       673 - 9.15%
+  Older than 3 years                       412 - 5.60%
+  Older than 4 years                       286 - 3.89%
+  Older than 5 years                       73 - 0.99%
+```
+
+When databases grow old, they tend to accumulate a lot of hidden and deleted records. For pages we have the trash can, but for all the other tables we can't really tell how many records are deleted without asking the database directly.
+Show info about all the hidden and deleted cruft in the database:
+```bash
+./typo3/cli_dispatch.phpsh extbase doctor:cruftcount
+```
+
+Example result part:
+```apacheconfig
+Deleted records for table sys_refindex
+-------------------------------------------------------------------------------
+  total records                            1,220,516
+  deleted records                          174,700 - 14.31%
+
+Deleted records for table fe_users
+-------------------------------------------------------------------------------
+  total records                            171,627
+  deleted records                          6,703 - 3.91%
+
+Deleted records for table tt_content
+-------------------------------------------------------------------------------
+  total records                            148,542
+  deleted records                          63,056 - 42.45%
+
+Hidden records for table tt_content
+-------------------------------------------------------------------------------
+  total records                            148,542
+  hidden records                           7,196 - 4.84%
+
+Deleted records for table sys_file_collection
+-------------------------------------------------------------------------------
+  total records                            63,614
+  deleted records                          20,195 - 31.75%
+
+Hidden records for table sys_file_collection
+-------------------------------------------------------------------------------
+  total records                            63,614
+
+Deleted records for table pages
+-------------------------------------------------------------------------------
+  total records                            60,668
+  deleted records                          14,352 - 23.66%
+
+Hidden records for table pages
+-------------------------------------------------------------------------------
+  total records                            60,668
+  hidden records                           7,355 - 12.12%
+
+Deleted records for table sys_file_reference
+-------------------------------------------------------------------------------
+  total records                            40,499
+  deleted records                          20,261 - 50.03%
+
+Hidden records for table sys_file_reference
+-------------------------------------------------------------------------------
+  total records                            40,499
+  hidden records                           600 - 1.48%
+
+Deleted records for table tx_cal_event
+-------------------------------------------------------------------------------
+  total records                            5,211
+  deleted records                          1,475 - 28.31%
+
+Hidden records for table tx_cal_event
+-------------------------------------------------------------------------------
+  total records                            5,211
+  hidden records                           358 - 6.87%
+
+Deleted records for table tt_address
+-------------------------------------------------------------------------------
+  total records                            4,809
+  deleted records                          852 - 17.72%
+
+Deleted records for table tx_djoaccordion_domain_model_accordion
+-------------------------------------------------------------------------------
+  total records                            3,923
+  deleted records                          2,343 - 59.72%
+
+Deleted records for table tx_powermail_domain_model_answers
+-------------------------------------------------------------------------------
+  total records                            2,806
+  deleted records                          172 - 6.13%
 ```
 
 Find unused content elements and plugin types:
