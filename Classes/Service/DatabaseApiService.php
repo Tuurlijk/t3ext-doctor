@@ -308,13 +308,12 @@ class DatabaseApiService extends BaseApiService
     }
 
     /**
-     * Analyze all tx_* columns for table
+     * Analyze all tx_* columns for table excluding hidden and deleted rows
      *
      */
     public function analyzeColumnsForTable()
     {
-        $this->results[] = new Header('Field info for table %s', [$this->table]);
-        $tableRowCount = $this->getTableRowCount();
+        $this->results[] = new Header('Field info for table %s excluding hidden and deleted records', [$this->table]);
 
         $unusedColumns = [];
 
@@ -323,14 +322,29 @@ class DatabaseApiService extends BaseApiService
         $valuesWithPrefix = ArrayUtility::getValuesWithPrefix($this->tableColumns, 'tx_');
         $this->results[] = new ListItem('%d tx_* columns found', [count($valuesWithPrefix)]);
 
+        $whereParts = [];
+        if ($this->tableHasColumn('deleted')) {
+            $whereParts[] = 'deleted = 0';
+        }
+        if ($this->tableHasColumn('hidden')) {
+            $whereParts[] = 'hidden = 0';
+        }
+        $where = '';
+        if (count($whereParts)) {
+            $where = ' WHERE ' . implode(' AND ', $whereParts);
+        }
+
+        $tableRowCount = $this->getTableRowCount($where);
+
         foreach ($valuesWithPrefix as $tableColumn) {
             if (strpos($tableColumn, 'tx_') !== 0) {
                 continue;
             }
             $result = $databaseHandler->sql_query(sprintf(
-                'SELECT COUNT(*) AS rows, %1$s FROM %2$s GROUP BY %1$s ORDER BY rows DESC, %1$s',
+                'SELECT COUNT(*) AS rows, %1$s FROM %2$s %3$s GROUP BY %1$s ORDER BY rows DESC, %1$s',
                 mysqli_real_escape_string($databaseHandler->getDatabaseHandle(), $tableColumn),
-                mysqli_real_escape_string($databaseHandler->getDatabaseHandle(), $this->table)
+                mysqli_real_escape_string($databaseHandler->getDatabaseHandle(), $this->table),
+                $where
             ));
             $rowCount = $databaseHandler->sql_num_rows($result);
             $this->results[] = new Header('Field info for %s', [$tableColumn]);
@@ -372,7 +386,7 @@ class DatabaseApiService extends BaseApiService
         if (array_key_exists($where, $this->tableRowCount)) {
             return $this->tableRowCount[$where];
         }
-        if ($where) {
+        if ($where && strpos($where, 'WHERE') === false) {
             $where = 'WHERE ' . $where;
         }
         $databaseHandler = $this->getDatabaseHandler();
