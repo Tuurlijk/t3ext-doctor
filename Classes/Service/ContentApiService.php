@@ -86,7 +86,7 @@ class ContentApiService extends BaseApiService
     {
         $setup = $GLOBALS['TSFE']->tmpl->setup;
         $contentTypes = ArrayUtility::noDots(array_keys($setup['tt_content.']));
-        $this->results[] = new Header('Content usage');
+        $this->results[] = new Header('Content usage (excluding hidden and deleted rows)');
         $usage = $this->getContentElementUsage();
         $used = [];
         $unused = [];
@@ -172,7 +172,7 @@ class ContentApiService extends BaseApiService
         $pluginTypes = ArrayUtility::noDots(array_keys($setup['tt_content.']['list.']['20.']));
         unset($pluginTypes['key']);
         unset($pluginTypes['stdWrap']);
-        $this->results[] = new Header('Plugin usage');
+        $this->results[] = new Header('Plugin usage (excluding hidden and deleted rows)');
         $usage = $this->getPluginUsage();
         $used = [];
         $unused = [];
@@ -264,6 +264,9 @@ class ContentApiService extends BaseApiService
 			  COUNT(*) AS `total`, CType
 			FROM
 			  `tt_content`
+			WHERE
+			  deleted = 0
+			  AND hidden = 0
 			GROUP BY CType
 			ORDER BY total DESC;"
         );
@@ -288,6 +291,8 @@ class ContentApiService extends BaseApiService
 			  `tt_content`
 			WHERE
 			  CType = 'list'
+			  AND deleted = 0
+			  AND hidden = 0
 			GROUP BY list_type
 			ORDER BY total DESC;"
         );
