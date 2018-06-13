@@ -140,17 +140,22 @@ class DatabaseApiService extends BaseApiService
         if ($tableRowCount === null) {
             $tableRowCount = $this->getTableRowCount();
         }
-        $this->results[] = new KeyValuePair('total records', number_format($tableRowCount));
+        $tableSize = DatabaseUtility::getTableSize($table);
+
+        $this->results[] = new KeyValuePair('total records', number_format($tableRowCount) . ' - ' . GeneralUtility::formatSize($tableSize));
 
         $result = $databaseHandler->sql_query(sprintf('SELECT COUNT(*) as total FROM %s WHERE deleted = 1', $table));
         $row = $databaseHandler->sql_fetch_assoc($result);
         $databaseHandler->sql_free_result($result);
         if ($row['total'] > 0) {
             $percentage = $row['total'] * 100 / $tableRowCount;
+            $approximateSize = $tableSize * $row['total'] / $tableRowCount;
             $this->results[] = new KeyValuePair(
                 'deleted records',
-                number_format($row['total']) . ' - ' . number_format($percentage, 2) . '%'
+                number_format($row['total']) . ' - ' . number_format($percentage, 2) . '%' . ' - ' . GeneralUtility::formatSize($approximateSize)
             );
+        } else {
+            $this->results[] = new ListItem('No deleted rows found');
         }
     }
 
@@ -172,7 +177,9 @@ class DatabaseApiService extends BaseApiService
         if ($tableRowCount === null) {
             $tableRowCount = $this->getTableRowCount();
         }
-        $this->results[] = new KeyValuePair('total records', number_format($tableRowCount));
+        $tableSize = DatabaseUtility::getTableSize($table);
+
+        $this->results[] = new KeyValuePair('total records', number_format($tableRowCount) . ' - ' . GeneralUtility::formatSize($tableSize));
 
         $result = $databaseHandler->sql_query(sprintf('SELECT COUNT(*) as total FROM %s WHERE hidden = 1',
             $table));
@@ -180,10 +187,13 @@ class DatabaseApiService extends BaseApiService
         $databaseHandler->sql_free_result($result);
         if ($row['total'] > 0) {
             $percentage = $row['total'] * 100 / $tableRowCount;
+            $approximateSize = $tableSize * $row['total'] / $tableRowCount;
             $this->results[] = new KeyValuePair(
                 'hidden records',
-                number_format($row['total']) . ' - ' . number_format($percentage, 2) . '%'
+                number_format($row['total']) . ' - ' . number_format($percentage, 2) . '%' . ' - ' . GeneralUtility::formatSize($approximateSize)
             );
+        } else {
+            $this->results[] = new ListItem('No hidden rows found');
         }
     }
 
