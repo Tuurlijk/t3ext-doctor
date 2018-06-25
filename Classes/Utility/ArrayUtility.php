@@ -19,7 +19,6 @@ namespace MichielRoos\Doctor\Utility;
 
 /**
  * Class ArrayUtility
- * @package MichielRoos\Doctor\Utility
  */
 class ArrayUtility
 {
@@ -37,6 +36,7 @@ class ArrayUtility
                 $noDots[] = $item;
             }
         }
+
         return $noDots;
     }
 
@@ -54,6 +54,7 @@ class ArrayUtility
                 $noDots[] = $item;
             }
         }
+
         return $noDots;
     }
 
@@ -73,6 +74,7 @@ class ArrayUtility
             }
             $valuesWithPrefix[] = $value;
         }
+
         return $valuesWithPrefix;
     }
 }

@@ -19,7 +19,6 @@ namespace MichielRoos\Doctor\Domain\Model;
 
 /**
  * Class Suggestion
- * @package MichielRoos\Doctor\Domain\Model
  */
 class Suggestion extends ListItem
 {

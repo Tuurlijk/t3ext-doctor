@@ -16,7 +16,6 @@ namespace MichielRoos\Doctor\Service;
  *
  * The TYPO3 project - inspiring people to share!
  */
-
 use MichielRoos\Doctor\Domain\Model\Header;
 use MichielRoos\Doctor\Domain\Model\KeyValueHeader;
 use MichielRoos\Doctor\Domain\Model\KeyValuePair;
@@ -24,7 +23,6 @@ use MichielRoos\Doctor\Domain\Model\ListItem;
 
 /**
  * Class OverridesApiService
- * @package MichielRoos\Doctor\Service
  */
 class OverridesApiService extends BaseApiService
 {
@@ -42,7 +40,6 @@ class OverridesApiService extends BaseApiService
 
         return $this->results;
     }
-
 
     /**
      * Check for usage of old way of implementing XCLASSes

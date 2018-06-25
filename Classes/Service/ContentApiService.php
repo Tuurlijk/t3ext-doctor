@@ -16,7 +16,6 @@ namespace MichielRoos\Doctor\Service;
  *
  * The TYPO3 project - inspiring people to share!
  */
-
 use MichielRoos\Doctor\Domain\Model\Header;
 use MichielRoos\Doctor\Domain\Model\KeyValueHeader;
 use MichielRoos\Doctor\Domain\Model\KeyValuePair;
@@ -26,7 +25,6 @@ use MichielRoos\Doctor\Utility\Frontend\TyposcriptUtility;
 
 /**
  * Class ContentApiService
- * @package MichielRoos\Doctor\Service
  */
 class ContentApiService extends BaseApiService
 {
@@ -41,8 +39,8 @@ class ContentApiService extends BaseApiService
      * @param string $contentType The content type (CType) to inspect
      * @param string $listType The list type (plugin) to inspect
      * @param int $limit Show up to [limit] records found
-     * @return array
      * @throws \TYPO3\CMS\Core\Error\Http\ServiceUnavailableException
+     * @return array
      */
     public function getInfo($contentType, $listType, $limit)
     {
@@ -64,6 +62,7 @@ class ContentApiService extends BaseApiService
             $listType = mysqli_real_escape_string($this->getDatabaseHandler()->getDatabaseHandle(), $listType);
             $this->getPluginTypeUsage($listType);
         }
+
         return $this->results;
     }
 
@@ -131,6 +130,7 @@ class ContentApiService extends BaseApiService
         $count = $databaseHandler->sql_num_rows($result);
         if (!$count) {
             $this->results[] = new Header('No content elements of type "%s" found', [$contentType]);
+
             return;
         }
         $this->results[] = new Header('Content elements of type "%s"', [$contentType]);
@@ -220,6 +220,7 @@ class ContentApiService extends BaseApiService
         $count = $databaseHandler->sql_num_rows($result);
         if (!$count) {
             $this->results[] = new Header('No plugins of type "%s" found', [$listType]);
+
             return;
         }
         $this->results[] = new Header('Plugins of type "%s"', [$listType]);
@@ -260,7 +261,7 @@ class ContentApiService extends BaseApiService
         $usage = [];
         $databaseHandler = $this->getDatabaseHandler();
         $result = $databaseHandler->sql_query(
-            "SELECT
+            'SELECT
 			  COUNT(*) AS `total`, CType
 			FROM
 			  `tt_content`
@@ -268,12 +269,13 @@ class ContentApiService extends BaseApiService
 			  deleted = 0
 			  AND hidden = 0
 			GROUP BY CType
-			ORDER BY total DESC;"
+			ORDER BY total DESC;'
         );
         while ($row = $databaseHandler->sql_fetch_assoc($result)) {
             $usage[$row['CType']] = $row['total'];
         }
         $databaseHandler->sql_free_result($result);
+
         return $usage;
     }
 
@@ -300,6 +302,7 @@ class ContentApiService extends BaseApiService
             $usage[$row['list_type']] = $row['total'];
         }
         $databaseHandler->sql_free_result($result);
+
         return $usage;
     }
 }

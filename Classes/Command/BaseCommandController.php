@@ -16,7 +16,6 @@ namespace MichielRoos\Doctor\Command;
  *
  * The TYPO3 project - inspiring people to share!
  */
-
 use MichielRoos\Doctor\Domain\Model\Header;
 use MichielRoos\Doctor\Domain\Model\KeyValueHeader;
 use MichielRoos\Doctor\Domain\Model\KeyValuePair;
@@ -27,17 +26,16 @@ use TYPO3\CMS\Extbase\Mvc\Controller\CommandController;
 
 /**
  * Class BaseCommandController
- * @package MichielRoos\Doctor\Command
  */
 class BaseCommandController extends CommandController
 {
     /**
-     * @var \TYPO3\CMS\Core\Log\LogManager $logManager
+     * @var \TYPO3\CMS\Core\Log\LogManager
      */
     protected $logManager;
 
     /**
-     * @var \TYPO3\CMS\Core\Log\Logger $logger
+     * @var \TYPO3\CMS\Core\Log\Logger
      */
     protected $logger;
 
@@ -59,6 +57,7 @@ class BaseCommandController extends CommandController
 
     /**
      * Write results
+     * @param mixed $results
      */
     public function writeResults($results)
     {

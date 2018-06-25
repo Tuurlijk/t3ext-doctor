@@ -19,7 +19,6 @@ namespace MichielRoos\Doctor\Domain\Model;
 
 /**
  * Class ListItem
- * @package MichielRoos\Doctor\Domain\Model
  */
 class ListItem
 {
@@ -36,7 +35,7 @@ class ListItem
     public function __construct($value = '', $valueArguments = [])
     {
         if ($value) {
-            if ($valueArguments !== array()) {
+            if ($valueArguments !== []) {
                 $value = vsprintf($value, $valueArguments);
             }
             $this->setValue($value);

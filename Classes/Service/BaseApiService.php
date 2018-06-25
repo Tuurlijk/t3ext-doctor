@@ -19,7 +19,6 @@ namespace MichielRoos\Doctor\Service;
 
 /**
  * Class BaseApiService
- * @package MichielRoos\Doctor\Service
  */
 class BaseApiService
 {

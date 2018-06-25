@@ -19,7 +19,6 @@ namespace MichielRoos\Doctor\Utility;
 
 /**
  * Class DatabaseUtility
- * @package MichielRoos\Doctor\Utility
  */
 class DatabaseUtility
 {
@@ -32,6 +31,7 @@ class DatabaseUtility
         $result = $databaseHandler->sql_query("SELECT SUM( data_length + index_length ) AS size FROM information_schema.TABLES WHERE table_schema = '" . TYPO3_db . "'");
         $row = $databaseHandler->sql_fetch_assoc($result);
         $databaseHandler->sql_free_result($result);
+
         return array_pop($row);
     }
 
@@ -56,6 +56,7 @@ class DatabaseUtility
         $row = $databaseHandler->sql_fetch_assoc($result);
         $size = array_pop($row);
         $databaseHandler->sql_free_result($result);
+
         return $size;
     }
 
@@ -82,6 +83,7 @@ class DatabaseUtility
             $tableAndCount[$row['table']] = $row['rows'];
         }
         $databaseHandler->sql_free_result($result);
+
         return $tableAndCount;
     }
 
@@ -89,7 +91,7 @@ class DatabaseUtility
      * Check if a table has a column
      * @param $table
      * @param $column
-     * @return boolean
+     * @return bool
      */
     public static function tableHasColumn($table, $column)
     {

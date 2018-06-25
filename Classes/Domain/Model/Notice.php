@@ -19,7 +19,6 @@ namespace MichielRoos\Doctor\Domain\Model;
 
 /**
  * Class Notice
- * @package MichielRoos\Doctor\Domain\Model
  */
 class Notice extends ListItem
 {
