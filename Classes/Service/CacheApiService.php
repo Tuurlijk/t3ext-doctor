@@ -16,7 +16,6 @@ namespace MichielRoos\Doctor\Service;
  *
  * The TYPO3 project - inspiring people to share!
  */
-
 use MichielRoos\Doctor\Domain\Model\Header;
 use MichielRoos\Doctor\Domain\Model\KeyValueHeader;
 use MichielRoos\Doctor\Domain\Model\KeyValuePair;
@@ -26,7 +25,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Class CacheApiService
- * @package MichielRoos\Doctor\Service
  */
 class CacheApiService extends BaseApiService
 {
@@ -83,7 +81,8 @@ class CacheApiService extends BaseApiService
         if (strpos($string, '\\') === false) {
             return $string;
         }
-        return substr(strrchr($string, "\\"), 1);
+
+        return substr(strrchr($string, '\\'), 1);
     }
 
     /**
@@ -92,7 +91,7 @@ class CacheApiService extends BaseApiService
     public function getCacheHashUsage()
     {
         $databaseHandler = $this->getDatabaseHandler();
-        $result = $databaseHandler->sql_query("SELECT COUNT(*) as `total`, tag FROM `cf_cache_hash_tags` GROUP BY tag ORDER BY total DESC, total");
+        $result = $databaseHandler->sql_query('SELECT COUNT(*) as `total`, tag FROM `cf_cache_hash_tags` GROUP BY tag ORDER BY total DESC, total');
         $this->results[] = new Header('Cache hash usage by tag');
         $this->results[] = new KeyValueHeader('tag', 'rows');
         while ($row = $databaseHandler->sql_fetch_assoc($result)) {
@@ -107,12 +106,12 @@ class CacheApiService extends BaseApiService
     public function getCacheHashSizeByType()
     {
         $databaseHandler = $this->getDatabaseHandler();
-        $result = $databaseHandler->sql_query("
+        $result = $databaseHandler->sql_query('
 			SELECT SUM( LENGTH( c.content ) ) AS size, t.tag
 			FROM cf_cache_hash AS c
 			JOIN  `cf_cache_hash_tags` AS t ON c.identifier = t.identifier
 			GROUP BY t.tag
-			ORDER BY size DESC, tag");
+			ORDER BY size DESC, tag');
         $this->results[] = new Header('Cache hash size by tag (total size: %s)',
             [GeneralUtility::formatSize(DatabaseUtility::getTableSize('cf_cache_hash'))]);
         $this->results[] = new KeyValueHeader('tag', 'total size');

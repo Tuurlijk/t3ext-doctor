@@ -19,7 +19,6 @@ namespace MichielRoos\Doctor\Domain\Model;
 
 /**
  * Class KeyValuePair
- * @package MichielRoos\Doctor\Domain\Model
  */
 class KeyValuePair extends ListItem
 {

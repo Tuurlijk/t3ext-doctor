@@ -16,7 +16,6 @@ namespace MichielRoos\Doctor\Service;
  *
  * The TYPO3 project - inspiring people to share!
  */
-
 use MichielRoos\Doctor\Domain\Model\Header;
 use MichielRoos\Doctor\Domain\Model\KeyValueHeader;
 use MichielRoos\Doctor\Domain\Model\KeyValuePair;
@@ -29,7 +28,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Class DatabaseApiService
- * @package MichielRoos\Doctor\Service
  */
 class DatabaseApiService extends BaseApiService
 {
@@ -107,6 +105,7 @@ class DatabaseApiService extends BaseApiService
                 $this->getHiddenRecords($table, (int)$rows);
             }
         }
+
         return $this->results;
     }
 
@@ -127,7 +126,7 @@ class DatabaseApiService extends BaseApiService
      * Get deleted records
      *
      * @param string $table
-     * @param integer $tableRowCount
+     * @param int $tableRowCount
      */
     public function getDeletedRecords($table = null, $tableRowCount = null)
     {
@@ -163,7 +162,7 @@ class DatabaseApiService extends BaseApiService
      * Get hidden records
      *
      * @param string $table
-     * @param integer $tableRowCount
+     * @param int $tableRowCount
      */
     public function getHiddenRecords($table = null, $tableRowCount = null)
     {
@@ -272,7 +271,7 @@ class DatabaseApiService extends BaseApiService
 			FROM information_schema.TABLES
 			WHERE table_schema = '" . TYPO3_db . "'
 			ORDER BY (data_length + index_length) DESC
-			LIMIT " . (int)$this->limit . ";");
+			LIMIT " . (int)$this->limit . ';');
         $this->results[] = new Header('%s Largest tables by size', [$this->limit]);
         while ($row = $databaseHandler->sql_fetch_assoc($result)) {
             $this->results[] = new KeyValuePair($row['table'], GeneralUtility::formatSize($row['size']));
@@ -328,7 +327,7 @@ class DatabaseApiService extends BaseApiService
 			  TABLE_SCHEMA = '" . TYPO3_db . "'
 			ORDER BY
 			  rows, `table` 
-			LIMIT " . (int)$this->limit . ";");
+			LIMIT " . (int)$this->limit . ';');
         $this->results[] = new Header('%s Smallest tables by record count', [$this->limit]);
 
         while ($row = $databaseHandler->sql_fetch_assoc($result)) {
@@ -346,7 +345,6 @@ class DatabaseApiService extends BaseApiService
 
     /**
      * Analyze all tx_* columns for table excluding hidden and deleted rows
-     *
      */
     public function analyzeColumnsForTable()
     {
@@ -428,13 +426,14 @@ class DatabaseApiService extends BaseApiService
         }
         $databaseHandler = $this->getDatabaseHandler();
         $result = $databaseHandler->sql_query(sprintf(
-            "SELECT COUNT(*) AS total FROM %s %s",
+            'SELECT COUNT(*) AS total FROM %s %s',
             mysqli_real_escape_string($databaseHandler->getDatabaseHandle(), $this->table),
             $where
         ));
         $row = $databaseHandler->sql_fetch_assoc($result);
         $databaseHandler->sql_free_result($result);
         $this->tableRowCount[$where] = (int)$row['total'];
+
         return $this->tableRowCount[$where];
     }
 
@@ -465,6 +464,7 @@ class DatabaseApiService extends BaseApiService
             $columns[] = $row['COLUMN_NAME'];
         }
         $databaseHandler->sql_free_result($result);
+
         return $columns;
     }
 

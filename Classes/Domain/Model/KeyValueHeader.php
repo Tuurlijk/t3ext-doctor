@@ -19,7 +19,6 @@ namespace MichielRoos\Doctor\Domain\Model;
 
 /**
  * Class KeyValueHeader
- * @package MichielRoos\Doctor\Domain\Model
  */
 class KeyValueHeader extends KeyValuePair
 {

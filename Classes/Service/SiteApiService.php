@@ -16,7 +16,6 @@ namespace MichielRoos\Doctor\Service;
  *
  * The TYPO3 project - inspiring people to share!
  */
-
 use MichielRoos\Doctor\Domain\Model\Header;
 use MichielRoos\Doctor\Domain\Model\KeyValuePair;
 use MichielRoos\Doctor\Utility\DatabaseUtility;
@@ -24,7 +23,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Class SiteApiService
- * @package MichielRoos\Doctor\Service
  */
 class SiteApiService extends BaseApiService
 {

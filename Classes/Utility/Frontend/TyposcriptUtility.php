@@ -16,13 +16,11 @@ namespace MichielRoos\Doctor\Utility\Frontend;
  *
  * The TYPO3 project - inspiring people to share!
  */
-
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
 /**
  * Class TyposcriptUtility
- * @package MichielRoos\Doctor\Utility\Frontend
  */
 class TyposcriptUtility
 {
@@ -60,7 +58,7 @@ class TyposcriptUtility
             $domainIds[] = 1;
         }
         $result = $databaseHandler->sql_query(
-            "SELECT
+            'SELECT
 			  p.uid,
 			  p.is_siteroot
 			FROM
@@ -68,8 +66,8 @@ class TyposcriptUtility
 			WHERE
 			  p.deleted = 0
 			  AND p.hidden = 0
-			  AND (p.is_siteroot = 1 OR p.uid = 1 OR p.uid IN(" . implode(',', $domainIds) . "))
-			ORDER BY p.is_siteroot DESC;"
+			  AND (p.is_siteroot = 1 OR p.uid = 1 OR p.uid IN(' . implode(',', $domainIds) . '))
+			ORDER BY p.is_siteroot DESC;'
         );
         $pages = [];
         $siteRoots = [];
@@ -93,6 +91,7 @@ class TyposcriptUtility
         } elseif (in_array(1, $pages)) {
             $uid = 1;
         }
+
         return (int)$uid;
     }
 

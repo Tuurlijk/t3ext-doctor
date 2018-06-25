@@ -16,11 +16,9 @@ namespace MichielRoos\Doctor\Service;
  *
  * The TYPO3 project - inspiring people to share!
  */
-
 use MichielRoos\Doctor\Domain\Model\Header;
 use MichielRoos\Doctor\Domain\Model\KeyValueHeader;
 use MichielRoos\Doctor\Domain\Model\KeyValuePair;
-use MichielRoos\Doctor\Domain\Model\ListItem;
 use MichielRoos\Doctor\Domain\Model\Notice;
 use MichielRoos\Doctor\Domain\Model\Suggestion;
 use MichielRoos\Doctor\Utility\ArrayUtility;
@@ -29,7 +27,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Class TyposcriptApiService
- * @package MichielRoos\Doctor\Service
  */
 class TyposcriptApiService extends BaseApiService
 {
@@ -37,8 +34,8 @@ class TyposcriptApiService extends BaseApiService
      * Typoscript information
      *
      * @param string $key
-     * @return array
      * @throws \TYPO3\CMS\Core\Error\Http\ServiceUnavailableException
+     * @return array
      */
     public function getInfo($key = null)
     {
@@ -59,7 +56,7 @@ class TyposcriptApiService extends BaseApiService
         $rootTemplatesOutsideSiteRoots = 0;
         $databaseHandler = $this->getDatabaseHandler();
         $result = $databaseHandler->sql_query(
-            "SELECT
+            'SELECT
 			  t.pid,
 			  p.title AS pageTitle,
 			  t.root,
@@ -77,7 +74,7 @@ class TyposcriptApiService extends BaseApiService
 			  AND p.hidden = 0
 			  AND t.deleted = 0
 			  AND t.hidden = 0
-			ORDER BY p.is_siteroot DESC, t.root DESC;");
+			ORDER BY p.is_siteroot DESC, t.root DESC;');
 
         $resultCount = $databaseHandler->sql_num_rows($result);
         $this->results[] = new Header('Typoscript templates found: %s', [$resultCount]);
@@ -128,6 +125,7 @@ class TyposcriptApiService extends BaseApiService
             $setup = $this->getSetupByKey($key);
             if (!count($setup)) {
                 $this->results[] = new Notice('Typoscript object not found for key "%s"', [$key]);
+
                 return;
             }
             $this->results[] = new Notice('Report for objects within key "%s"', [$key]);
@@ -162,6 +160,7 @@ class TyposcriptApiService extends BaseApiService
                 $setup = $setup[$keyPart . '.'];
             }
         }
+
         return $setup;
     }
 }

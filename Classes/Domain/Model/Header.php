@@ -19,12 +19,11 @@ namespace MichielRoos\Doctor\Domain\Model;
 
 /**
  * Class Header
- * @package MichielRoos\Doctor\Domain\Model
  */
 class Header extends ListItem
 {
     /**
-     * @var integer
+     * @var int
      */
     private $level = 1;
 
@@ -37,7 +36,7 @@ class Header extends ListItem
     public function __construct($value = '', $valueArguments = [], $level = 1)
     {
         if ($value) {
-            if ($valueArguments !== array()) {
+            if ($valueArguments !== []) {
                 $value = vsprintf($value, $valueArguments);
             }
             $this->setValue($value);
