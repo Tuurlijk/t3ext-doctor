@@ -77,7 +77,7 @@ class DatabaseUtility
 			WHERE
 			  TABLE_SCHEMA = '" . TYPO3_db . "'
 			ORDER BY
-			  rows DESC, `table`");
+			  `rows` DESC, `table`");
 
         while ($row = $databaseHandler->sql_fetch_assoc($result)) {
             $tableAndCount[$row['table']] = $row['rows'];

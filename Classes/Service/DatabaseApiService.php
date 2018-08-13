@@ -326,7 +326,7 @@ class DatabaseApiService extends BaseApiService
 			WHERE
 			  TABLE_SCHEMA = '" . TYPO3_db . "'
 			ORDER BY
-			  rows, `table` 
+			  `rows`, `table` 
 			LIMIT " . (int)$this->limit . ';');
         $this->results[] = new Header('%s Smallest tables by record count', [$this->limit]);
 
