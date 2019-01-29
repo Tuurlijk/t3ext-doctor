@@ -147,8 +147,12 @@ class DatabaseApiService extends BaseApiService
         $row = $databaseHandler->sql_fetch_assoc($result);
         $databaseHandler->sql_free_result($result);
         if ($row['total'] > 0) {
-            $percentage = $row['total'] * 100 / $tableRowCount;
-            $approximateSize = $tableSize * $row['total'] / $tableRowCount;
+            if ($tableRowCount > 0) {
+                $percentage = $row['total'] * 100 / $tableRowCount;
+                $approximateSize = $tableSize * $row['total'] / $tableRowCount;
+            } else {
+                $percentage = $approximateSize = 0;
+            }
             $this->results[] = new KeyValuePair(
                 'deleted records',
                 number_format($row['total']) . ' - ' . number_format($percentage, 2) . '%' . ' - ' . GeneralUtility::formatSize($approximateSize)
@@ -185,8 +189,12 @@ class DatabaseApiService extends BaseApiService
         $row = $databaseHandler->sql_fetch_assoc($result);
         $databaseHandler->sql_free_result($result);
         if ($row['total'] > 0) {
-            $percentage = $row['total'] * 100 / $tableRowCount;
-            $approximateSize = $tableSize * $row['total'] / $tableRowCount;
+            if ($tableRowCount > 0) {
+                $percentage = $row['total'] * 100 / $tableRowCount;
+                $approximateSize = $tableSize * $row['total'] / $tableRowCount;
+            } else {
+                $percentage = $approximateSize = 0;
+            }
             $this->results[] = new KeyValuePair(
                 'hidden records',
                 number_format($row['total']) . ' - ' . number_format($percentage, 2) . '%' . ' - ' . GeneralUtility::formatSize($approximateSize)
@@ -218,7 +226,11 @@ class DatabaseApiService extends BaseApiService
         $row = $databaseHandler->sql_fetch_assoc($result);
         $databaseHandler->sql_free_result($result);
         if ($row['total'] > 0) {
-            $percentage = $row['total'] * 100 / $tableRowCount;
+            if ($tableRowCount > 0) {
+                $percentage = $row['total'] * 100 / $tableRowCount;
+            } else {
+                $percentage = 0;
+            }
             $this->results[] = new KeyValuePair(
                 'Younger than 1 year',
                 number_format($row['total']) . ' - ' . number_format($percentage, 2) . '%'
@@ -236,7 +248,11 @@ class DatabaseApiService extends BaseApiService
             $row = $databaseHandler->sql_fetch_assoc($result);
             $databaseHandler->sql_free_result($result);
             if ($row['total'] > 0) {
-                $percentage = $row['total'] * 100 / $tableRowCount;
+                if ($tableRowCount > 0) {
+                    $percentage = $row['total'] * 100 / $tableRowCount;
+                } else {
+                    $percentage = 0;
+                }
                 $this->results[] = new KeyValuePair(
                     $key,
                     number_format($row['total']) . ' - ' . number_format($percentage, 2) . '%'
@@ -271,7 +287,7 @@ class DatabaseApiService extends BaseApiService
 			FROM information_schema.TABLES
 			WHERE table_schema = '" . TYPO3_db . "'
 			ORDER BY (data_length + index_length) DESC
-			LIMIT " . (int)$this->limit . ';');
+			LIMIT " . $this->limit . ';');
         $this->results[] = new Header('%s Largest tables by size', [$this->limit]);
         while ($row = $databaseHandler->sql_fetch_assoc($result)) {
             $this->results[] = new KeyValuePair($row['table'], GeneralUtility::formatSize($row['size']));
@@ -327,7 +343,7 @@ class DatabaseApiService extends BaseApiService
 			  TABLE_SCHEMA = '" . TYPO3_db . "'
 			ORDER BY
 			  `rows`, `table` 
-			LIMIT " . (int)$this->limit . ';');
+			LIMIT " . $this->limit . ';');
         $this->results[] = new Header('%s Smallest tables by record count', [$this->limit]);
 
         while ($row = $databaseHandler->sql_fetch_assoc($result)) {
@@ -387,7 +403,7 @@ class DatabaseApiService extends BaseApiService
             $i = 0;
             while ($row = $databaseHandler->sql_fetch_assoc($result)) {
                 $this->results[] = new KeyValuePair($row[$tableColumn] ?: 'empty', number_format($row['rows']));
-                if ((int)$tableRowCount === (int)$row['rows']) {
+                if ($tableRowCount === (int)$row['rows']) {
                     $this->results[] = new Suggestion('All rows in this table have the same value. Do you really need this field?');
                     $unusedColumns[$tableColumn] = $row[$tableColumn] ?: 'empty';
                 }
