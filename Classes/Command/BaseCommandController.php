@@ -16,7 +16,6 @@ namespace MichielRoos\Doctor\Command;
  *
  * The TYPO3 project - inspiring people to share!
  */
-
 use MichielRoos\Doctor\Domain\Model\Header;
 use MichielRoos\Doctor\Domain\Model\KeyValueHeader;
 use MichielRoos\Doctor\Domain\Model\KeyValuePair;
@@ -32,7 +31,7 @@ use TYPO3\CMS\Extbase\Mvc\Controller\CommandController;
 class BaseCommandController extends CommandController
 {
     /**
-     * @var integer
+     * @var int
      */
     protected $lineLength = 80;
 
