@@ -16,12 +16,14 @@ namespace MichielRoos\Doctor\Command;
  *
  * The TYPO3 project - inspiring people to share!
  */
+
 use MichielRoos\Doctor\Domain\Model\Header;
 use MichielRoos\Doctor\Domain\Model\KeyValueHeader;
 use MichielRoos\Doctor\Domain\Model\KeyValuePair;
 use MichielRoos\Doctor\Domain\Model\ListItem;
 use MichielRoos\Doctor\Domain\Model\Notice;
 use MichielRoos\Doctor\Domain\Model\Suggestion;
+use TYPO3\CMS\Core\Log\LogManager;
 use TYPO3\CMS\Extbase\Mvc\Controller\CommandController;
 
 /**
@@ -30,7 +32,12 @@ use TYPO3\CMS\Extbase\Mvc\Controller\CommandController;
 class BaseCommandController extends CommandController
 {
     /**
-     * @var \TYPO3\CMS\Core\Log\LogManager
+     * @var integer
+     */
+    protected $lineLength = 80;
+
+    /**
+     * @var LogManager
      */
     protected $logManager;
 
@@ -40,9 +47,9 @@ class BaseCommandController extends CommandController
     protected $logger;
 
     /**
-     * @param \TYPO3\CMS\Core\Log\LogManager $logManager
+     * @param LogManager $logManager
      */
-    public function injectLogManager(\TYPO3\CMS\Core\Log\LogManager $logManager)
+    public function injectLogManager(LogManager $logManager)
     {
         $this->logManager = $logManager;
     }
@@ -52,7 +59,17 @@ class BaseCommandController extends CommandController
      */
     public function initializeObject()
     {
-        $this->logger = $this->objectManager->get('TYPO3\CMS\Core\Log\LogManager')->getLogger(__CLASS__);
+        if (defined('\TYPO3\CMS\Extbase\Mvc\Controller\CommandController::MAXIMUM_LINE_LENGTH')) {
+            $this->lineLength = self::MAXIMUM_LINE_LENGTH;
+        } elseif (function_exists('ncurses_getmaxyx')) {
+            ncurses_getmaxyx(STDSCR, $rows, $columns);
+            $this->lineLength = $columns;
+        } elseif (@exec('tput cols')) {
+            $this->lineLength = exec('tput cols');
+        } elseif (getenv('COLUMNS')) {
+            $this->lineLength = getenv('COLUMNS');
+        }
+        $this->logger = $this->objectManager->get(LogManager::class)->getLogger(__CLASS__);
     }
 
     /**
@@ -65,28 +82,28 @@ class BaseCommandController extends CommandController
             if ($result instanceof Header) {
                 $this->outputLine('');
                 $this->outputLine($result->getValue());
-                $this->outputLine(str_repeat('-', self::MAXIMUM_LINE_LENGTH));
+                $this->outputLine(str_repeat('-', $this->lineLength));
             } elseif ($result instanceof KeyValueHeader) {
-                $line = wordwrap($result->getValue(), self::MAXIMUM_LINE_LENGTH - 43, PHP_EOL . str_repeat(' ', 43),
+                $line = wordwrap($result->getValue(), $this->lineLength - 43, PHP_EOL . str_repeat(' ', 43),
                     true);
                 $this->outputLine('%-2s%-40s %s', [' ', $result->getKey(), $line]);
-                $this->outputLine(str_repeat('-', self::MAXIMUM_LINE_LENGTH));
+                $this->outputLine(str_repeat('-', $this->lineLength));
             } elseif ($result instanceof KeyValuePair) {
-                $line = wordwrap($result->getValue(), self::MAXIMUM_LINE_LENGTH - 43, PHP_EOL . str_repeat(' ', 43),
+                $line = wordwrap($result->getValue(), $this->lineLength - 43, PHP_EOL . str_repeat(' ', 43),
                     true);
                 $this->outputLine('%-2s%-40s %s', [' ', $result->getKey(), $line]);
             } elseif ($result instanceof Suggestion) {
-                $this->outputLine(str_repeat('-', self::MAXIMUM_LINE_LENGTH));
-                $suggestionWidth = self::MAXIMUM_LINE_LENGTH - 2;
+                $this->outputLine(str_repeat('-', $this->lineLength));
+                $suggestionWidth = $this->lineLength - 2;
                 $line = wordwrap($result->getValue(), $suggestionWidth, PHP_EOL . '| ', true);
                 $this->outputLine('| %-' . $suggestionWidth . 's', [$line]);
-                $this->outputLine(str_repeat('-', self::MAXIMUM_LINE_LENGTH));
+                $this->outputLine(str_repeat('-', $this->lineLength));
             } elseif ($result instanceof Notice) {
-                $this->outputLine(str_repeat('-', self::MAXIMUM_LINE_LENGTH));
-                $suggestionWidth = self::MAXIMUM_LINE_LENGTH - 2;
+                $this->outputLine(str_repeat('-', $this->lineLength));
+                $suggestionWidth = $this->lineLength - 2;
                 $line = wordwrap($result->getValue(), $suggestionWidth, PHP_EOL . '! ', true);
                 $this->outputLine('! %-' . $suggestionWidth . 's', [$line]);
-                $this->outputLine(str_repeat('-', self::MAXIMUM_LINE_LENGTH));
+                $this->outputLine(str_repeat('-', $this->lineLength));
             } elseif ($result instanceof ListItem) {
                 $this->outputLine(' - ' . $result->getValue());
             }

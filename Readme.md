@@ -214,7 +214,7 @@ Plugin usage
 * Use language labels
 * Generate report document / pdf
 * Add more scans
-* Also make versions of he extension that run on TYPO3 versions 7 and up
+* Also make versions of he extension that run on TYPO3 versions 8 and up
 
 ## Known Issues
-Currently this only runs on TYPO3 6.2 and only in the cli.
+Extesnsion is known to work on TYPO3 6.2 and 7.6 and only in the cli.
