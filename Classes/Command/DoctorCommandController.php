@@ -16,7 +16,6 @@ namespace MichielRoos\Doctor\Command;
  *
  * The TYPO3 project - inspiring people to share!
  */
-
 use MichielRoos\Doctor\Service\CacheApiService;
 use MichielRoos\Doctor\Service\ContentApiService;
 use MichielRoos\Doctor\Service\DatabaseApiService;
