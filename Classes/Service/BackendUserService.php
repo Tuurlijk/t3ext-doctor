@@ -72,6 +72,7 @@ class BackendUserService extends BaseApiService
         if (!count($users)) {
             $this->results[] = new Header('Backend user information');
             $this->results[] = new ListItem('No user found');
+
             return;
         }
 
@@ -116,12 +117,12 @@ class BackendUserService extends BaseApiService
                 }
                 $this->results[] = new ListItem($table);
             }
-
         }
     }
 
     /**
      * @param $groups
+     * @param mixed $depth
      */
     private function drawGroupTree($groups, $depth = 0)
     {
@@ -151,6 +152,7 @@ class BackendUserService extends BaseApiService
                 $tables = array_merge($tables, $this->getEffectiveTablesView($subGroups));
             }
         }
+
         return $tables;
     }
 
@@ -170,6 +172,7 @@ class BackendUserService extends BaseApiService
         if ($row = $databaseHandler->sql_fetch_assoc($result)) {
             $tables = $row['tables_select'];
         }
+
         return explode(',', $tables);
     }
 
@@ -188,6 +191,7 @@ class BackendUserService extends BaseApiService
                 $tables = array_merge($tables, $this->getEffectiveTablesModify($subGroups));
             }
         }
+
         return $tables;
     }
 
@@ -207,6 +211,7 @@ class BackendUserService extends BaseApiService
         if ($row = $databaseHandler->sql_fetch_assoc($result)) {
             $tables = $row['tables_modify'];
         }
+
         return explode(',', $tables);
     }
 }
