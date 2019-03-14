@@ -19,6 +19,7 @@ Call any of the cli commands. The `doctor:info` command runs all the other comma
 EXTENSION "DOCTOR":
 -------------------------------------------------------------------------------
   doctor:info                              Information about the whole system
+  doctor:backenduser                       Backend user information
   doctor:cache                             Cache information
   doctor:content                           Content information
   doctor:cruftcount                        Cruft Count; show amount and
@@ -30,6 +31,7 @@ EXTENSION "DOCTOR":
   doctor:typoscript                        Typoscript information
 ```
 
+### Database info
 Show info about the database and some more info on table pages:
 ```bash
 ./typo3/cli_dispatch.phpsh extbase doctor:database --table pages
@@ -74,6 +76,7 @@ Hidden record age for table pages
   Older than 5 years                       73 - 0.99%
 ```
 
+### Amount of cruft in the database
 When databases grow old, they tend to accumulate a lot of hidden and deleted records. For pages we have the trash can, but for all the other tables we can't really tell how many records are deleted without asking the database directly.
 Show info about all the hidden and deleted cruft in the database:
 ```bash
@@ -157,6 +160,7 @@ Deleted records for table tx_powermail_domain_model_answers
   deleted records                          172 - 6.13%
 ```
 
+### Unused content
 Find unused content elements and plugin types:
 ```bash
 ./typo3/cli_dispatch.phpsh extbase doctor:content
@@ -206,6 +210,51 @@ Plugin usage
   powermail_pi2                            unused
   pagebrowse_pi1                           unused
   tt_address_pi1                           unused
+```
+
+### Backend user info
+Show details of a backend user:
+```bash
+./typo3/cli_dispatch.phpsh extbase doctor:backenduser --uid 287
+```
+
+Example output:
+
+```apacheconfig
+Tinus Tester
+--------------------------------------------------------------------------------------
+  Id                                       287
+  Real name                                Tinus Tester
+  Username                                 tinus
+  Description                              Test Account
+  Email                                    tinus@test.com
+  Activated                                yes
+  Admin                                    no
+
+  Groups:
+--------------------------------------------------------------------------------------
+  Content editor                           Can create and edit content and pages
+    Powermail                              Create and edit powermail forms
+
+  Tables view:
+--------------------------------------------------------------------------------------
+ - pages
+ - sys_collection
+ - tt_content
+ - tx_powermail_domain_model_field
+ - tx_powermail_domain_model_form
+ - tx_powermail_domain_model_mail
+ - tx_powermail_domain_model_page
+
+  Tables modify:
+--------------------------------------------------------------------------------------
+ - pages
+ - sys_collection
+ - tt_content
+ - tx_powermail_domain_model_field
+ - tx_powermail_domain_model_form
+ - tx_powermail_domain_model_mail
+ - tx_powermail_domain_model_page
 ```
 
 ## Roadmap

@@ -79,13 +79,14 @@ class BaseCommandController extends CommandController
     {
         foreach ($results as $result) {
             if ($result instanceof Header) {
-                $this->outputLine('');
+                $this->outputLine();
                 $this->outputLine($result->getValue());
                 $this->outputLine(str_repeat('-', $this->lineLength));
             } elseif ($result instanceof KeyValueHeader) {
+                $this->outputLine();
                 $line = wordwrap($result->getValue(), $this->lineLength - 43, PHP_EOL . str_repeat(' ', 43),
                     true);
-                $this->outputLine('%-2s%-40s %s', [' ', $result->getKey(), $line]);
+                $this->outputLine('%-2s%-40s %s', [' ', $result->getKey() . ':', $line]);
                 $this->outputLine(str_repeat('-', $this->lineLength));
             } elseif ($result instanceof KeyValuePair) {
                 $line = wordwrap($result->getValue(), $this->lineLength - 43, PHP_EOL . str_repeat(' ', 43),
