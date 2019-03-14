@@ -16,7 +16,7 @@ namespace MichielRoos\Doctor\Command;
  *
  * The TYPO3 project - inspiring people to share!
  */
-use MichielRoos\Doctor\Service\CacheApiService;
+use MichielRoos\Doctor\Service\BackendUserService;
 use MichielRoos\Doctor\Service\ContentApiService;
 use MichielRoos\Doctor\Service\DatabaseApiService;
 use MichielRoos\Doctor\Service\OverridesApiService;
@@ -28,6 +28,11 @@ use MichielRoos\Doctor\Service\TyposcriptApiService;
  */
 class DoctorCommandController extends BaseCommandController
 {
+    /**
+     * @var \MichielRoos\Doctor\Service\BackendUserService
+     */
+    protected $backendUserService;
+
     /**
      * @var \MichielRoos\Doctor\Service\CacheApiService
      */
@@ -73,11 +78,25 @@ class DoctorCommandController extends BaseCommandController
     }
 
     /**
+     * Backend user information
+     *
+     * @param int $uid Show information about user with id
+     * @param string $username Show information about user with username
+     * @param string $email Show information about user with email
+     */
+    public function backendUserCommand($uid = 0, $username = '', $email = '')
+    {
+        $this->backendUserService = $this->objectManager->get(BackendUserService::class);
+        $results = $this->backendUserService->getInfo($uid, $username, $email);
+        $this->writeResults($results);
+    }
+
+    /**
      * Cache information
      */
     public function cacheCommand()
     {
-        $this->cacheApiService = $this->objectManager->get(CacheApiService::class);
+        $this->cacheApiService = $this->objectManager->get(BackendUserService::class);
         $results = $this->cacheApiService->getInfo();
         $this->writeResults($results);
     }

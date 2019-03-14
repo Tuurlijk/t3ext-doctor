@@ -105,6 +105,8 @@ class BaseCommandController extends CommandController
                 $this->outputLine(str_repeat('-', $this->lineLength));
             } elseif ($result instanceof ListItem) {
                 $this->outputLine(' - ' . $result->getValue());
+            } else {
+                $this->outputLine((string)$result);
             }
         }
     }
