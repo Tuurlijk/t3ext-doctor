@@ -17,6 +17,7 @@ namespace MichielRoos\Doctor\Command;
  * The TYPO3 project - inspiring people to share!
  */
 use MichielRoos\Doctor\Service\BackendUserService;
+use MichielRoos\Doctor\Service\CacheApiService;
 use MichielRoos\Doctor\Service\ContentApiService;
 use MichielRoos\Doctor\Service\DatabaseApiService;
 use MichielRoos\Doctor\Service\OverridesApiService;
@@ -96,7 +97,7 @@ class DoctorCommandController extends BaseCommandController
      */
     public function cacheCommand()
     {
-        $this->cacheApiService = $this->objectManager->get(BackendUserService::class);
+        $this->cacheApiService = $this->objectManager->get(CacheApiService::class);
         $results = $this->cacheApiService->getInfo();
         $this->writeResults($results);
     }

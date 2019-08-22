@@ -36,6 +36,16 @@ class DatabaseUtility
     }
 
     /**
+     * Returns the DatabaseConnection
+     *
+     * @return \TYPO3\CMS\Core\Database\DatabaseConnection
+     */
+    protected function getDatabaseHandler()
+    {
+        return $GLOBALS['TYPO3_DB'];
+    }
+
+    /**
      * Get table size.
      * @param string $table
      * @return int
@@ -53,8 +63,10 @@ class DatabaseUtility
                 mysqli_real_escape_string(self::getDatabaseHandler()->getDatabaseHandle(), $table),
                 TYPO3_db
             ));
-        $row = $databaseHandler->sql_fetch_assoc($result);
-        $size = array_pop($row);
+        if ($databaseHandler->sql_num_rows($result)) {
+            $row = $databaseHandler->sql_fetch_assoc($result);
+            $size = array_pop($row);
+        }
         $databaseHandler->sql_free_result($result);
 
         return $size;
@@ -113,15 +125,5 @@ class DatabaseUtility
             ));
 
         return self::getDatabaseHandler()->sql_num_rows($result) === 1;
-    }
-
-    /**
-     * Returns the DatabaseConnection
-     *
-     * @return \TYPO3\CMS\Core\Database\DatabaseConnection
-     */
-    protected function getDatabaseHandler()
-    {
-        return $GLOBALS['TYPO3_DB'];
     }
 }
