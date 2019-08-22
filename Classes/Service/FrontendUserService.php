@@ -95,6 +95,7 @@ class FrontendUserService extends BaseApiService
             $this->results[] = new KeyValuePair('Real name', $user->getName());
             $this->results[] = new KeyValuePair('Username', $user->getUserName());
             $this->results[] = new KeyValuePair('Email', $user->getEmail());
+            $this->results[] = new KeyValuePair('Last Login', $user->getLastlogin()->format($GLOBALS['TYPO3_CONF_VARS']['SYS']['ddmmyy'] . ' ' . $GLOBALS['TYPO3_CONF_VARS']['SYS']['hhmm']));
 //            $this->results[] = new KeyValuePair('Activated', $user->get() ? 'yes' : 'no');
 
             $this->results[] = new KeyValueHeader('Groups');
