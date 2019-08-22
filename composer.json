@@ -10,7 +10,6 @@
     "health",
     "performance"
   ],
-  "version": "1.1.0",
   "require": {
     "typo3/cms-core": "^6.2"
   },
