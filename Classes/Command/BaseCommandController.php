@@ -113,4 +113,24 @@ class BaseCommandController extends CommandController
             }
         }
     }
+
+    /**
+     * Convert text to bool
+     *
+     * @param $value
+     * @return bool
+     */
+    protected function textToBool($value) {
+        switch ($value) {
+            case 'true':
+            case 'yes':
+            case 1:
+            case '1':
+                $value = true;
+                break;
+            default:
+                $value = false;
+        }
+        return $value;
+    }
 }

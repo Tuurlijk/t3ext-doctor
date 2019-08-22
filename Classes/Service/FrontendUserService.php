@@ -41,7 +41,7 @@ class FrontendUserService extends BaseApiService
      * @param bool $ignoreEnableFields Ignore enable fields
      * @return array
      */
-    public function getInfo($uid = 0, $username = '', $email = '', $ignoreEnableFields = true)
+    public function getInfo($uid = 0, $username = '', $email = '', $ignoreEnableFields = false)
     {
         $this->describe($uid, $username, $email, $ignoreEnableFields);
 
@@ -56,7 +56,7 @@ class FrontendUserService extends BaseApiService
      * @param string $email Show information about user with email
      * @param bool $ignoreEnableFields Ignore enable fields
      */
-    public function describe($uid = 0, $username = '', $email = '', $ignoreEnableFields = true)
+    public function describe($uid = 0, $username = '', $email = '', $ignoreEnableFields = false)
     {
         $uid = (int)$uid;
         $users = [];

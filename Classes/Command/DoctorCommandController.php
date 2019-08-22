@@ -106,10 +106,10 @@ class DoctorCommandController extends BaseCommandController
      * @param string $email Show information about user with email
      * @param bool $ignoreEnableFields Ignore enable fields
      */
-    public function frontendUserCommand($uid = 0, $username = '', $email = '', $ignoreEnableFields = true)
+    public function frontendUserCommand($uid = 0, $username = '', $email = '', $ignoreEnableFields = false)
     {
         $this->frontendUserService = $this->objectManager->get(FrontendUserService::class);
-        $results = $this->frontendUserService->getInfo($uid, $username, $email, $ignoreEnableFields);
+        $results = $this->frontendUserService->getInfo($uid, $username, $email, $this->textToBool($ignoreEnableFields));
         $this->writeResults($results);
     }
 
