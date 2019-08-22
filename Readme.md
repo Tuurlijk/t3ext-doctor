@@ -20,6 +20,7 @@ EXTENSION "DOCTOR":
 -------------------------------------------------------------------------------
   doctor:info                              Information about the whole system
   doctor:backenduser                       Backend user information
+  doctor:frontenduser                      Frontend user information
   doctor:cache                             Cache information
   doctor:content                           Content information
   doctor:cruftcount                        Cruft Count; show amount and

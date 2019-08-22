@@ -20,6 +20,7 @@ use MichielRoos\Doctor\Service\BackendUserService;
 use MichielRoos\Doctor\Service\CacheApiService;
 use MichielRoos\Doctor\Service\ContentApiService;
 use MichielRoos\Doctor\Service\DatabaseApiService;
+use MichielRoos\Doctor\Service\FrontendUserService;
 use MichielRoos\Doctor\Service\OverridesApiService;
 use MichielRoos\Doctor\Service\SiteApiService;
 use MichielRoos\Doctor\Service\TyposcriptApiService;
@@ -48,6 +49,11 @@ class DoctorCommandController extends BaseCommandController
      * @var \MichielRoos\Doctor\Service\DatabaseApiService
      */
     protected $databaseApiService;
+
+    /**
+     * @var \MichielRoos\Doctor\Service\FrontendUserService
+     */
+    protected $frontendUserService;
 
     /**
      * @var \MichielRoos\Doctor\Service\TyposcriptApiService
@@ -89,6 +95,21 @@ class DoctorCommandController extends BaseCommandController
     {
         $this->backendUserService = $this->objectManager->get(BackendUserService::class);
         $results = $this->backendUserService->getInfo($uid, $username, $email);
+        $this->writeResults($results);
+    }
+
+    /**
+     * Frontend user information
+     *
+     * @param int $uid Show information about user with id
+     * @param string $username Show information about user with username
+     * @param string $email Show information about user with email
+     * @param bool $ignoreEnableFields Ignore enable fields
+     */
+    public function frontendUserCommand($uid = 0, $username = '', $email = '', $ignoreEnableFields = true)
+    {
+        $this->frontendUserService = $this->objectManager->get(FrontendUserService::class);
+        $results = $this->frontendUserService->getInfo($uid, $username, $email, $ignoreEnableFields);
         $this->writeResults($results);
     }
 

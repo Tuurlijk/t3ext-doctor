@@ -30,6 +30,8 @@ use TYPO3\CMS\Extbase\Mvc\Controller\CommandController;
  */
 class BaseCommandController extends CommandController
 {
+    public const MAXIMUM_LINE_LENGTH = 120;
+
     /**
      * @var int
      */

@@ -55,6 +55,6 @@ class ListItem
      */
     public function setValue($value)
     {
-        $this->value = $value;
+        $this->value = preg_replace('/[\x00-\x1F\x7F]/u', '', $value);
     }
 }
