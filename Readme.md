@@ -266,4 +266,4 @@ Tinus Tester
 * Also make versions of he extension that run on TYPO3 versions 8 and up
 
 ## Known Issues
-Extesnsion is known to work on TYPO3 6.2 and 7.6 and only in the cli.
+Extension is known to work on TYPO3 6.2 and 7.6 and only in the cli.
