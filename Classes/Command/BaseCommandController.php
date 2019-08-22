@@ -120,7 +120,8 @@ class BaseCommandController extends CommandController
      * @param $value
      * @return bool
      */
-    protected function textToBool($value) {
+    protected function textToBool($value)
+    {
         switch ($value) {
             case 'true':
             case 'yes':
@@ -131,6 +132,7 @@ class BaseCommandController extends CommandController
             default:
                 $value = false;
         }
+
         return $value;
     }
 }
