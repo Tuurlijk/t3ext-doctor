@@ -16,6 +16,8 @@ namespace MichielRoos\Doctor\Utility\Frontend;
  *
  * The TYPO3 project - inspiring people to share!
  */
+
+use ApacheSolrForTypo3\Solr\System\Mvc\Frontend\Controller\OverriddenTypoScriptFrontendController;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
@@ -101,12 +103,11 @@ class TyposcriptUtility
      */
     public static function setupTsfe()
     {
-        $GLOBALS['TT'] = new \TYPO3\CMS\Core\TimeTracker\NullTimeTracker();
-
+        /** @var TypoScriptFrontendController $tsfe */
         $tsfe = GeneralUtility::makeInstance(
             TypoScriptFrontendController::class,
             $GLOBALS['TYPO3_CONF_VARS'],
-            self::getRootPageId(),
+            0,
             0
         );
 
@@ -124,7 +125,7 @@ class TyposcriptUtility
      *
      * @return \TYPO3\CMS\Core\Database\DatabaseConnection
      */
-    protected function getDatabaseHandler()
+    protected static function getDatabaseHandler()
     {
         return $GLOBALS['TYPO3_DB'];
     }

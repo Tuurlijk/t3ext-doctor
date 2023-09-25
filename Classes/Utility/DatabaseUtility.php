@@ -28,7 +28,7 @@ class DatabaseUtility
     public static function getDatabaseSize()
     {
         $databaseHandler = self::getDatabaseHandler();
-        $result = $databaseHandler->sql_query("SELECT SUM( data_length + index_length ) AS size FROM information_schema.TABLES WHERE table_schema = '" . TYPO3_db . "'");
+        $result = $databaseHandler->sql_query("SELECT SUM( data_length + index_length ) AS size FROM information_schema.TABLES WHERE table_schema = '" . $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['dbname'] . "'");
         $row = $databaseHandler->sql_fetch_assoc($result);
         $databaseHandler->sql_free_result($result);
 
@@ -40,7 +40,7 @@ class DatabaseUtility
      *
      * @return \TYPO3\CMS\Core\Database\DatabaseConnection
      */
-    protected function getDatabaseHandler()
+    protected static function getDatabaseHandler()
     {
         return $GLOBALS['TYPO3_DB'];
     }
@@ -61,7 +61,7 @@ class DatabaseUtility
             sprintf(
                 "SELECT data_length + index_length AS size FROM information_schema.TABLES WHERE table_name = '%s' AND  table_schema = '%s'",
                 mysqli_real_escape_string(self::getDatabaseHandler()->getDatabaseHandle(), $table),
-                TYPO3_db
+                $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['dbname']
             ));
         if ($databaseHandler->sql_num_rows($result)) {
             $row = $databaseHandler->sql_fetch_assoc($result);
@@ -87,7 +87,7 @@ class DatabaseUtility
 			FROM
 			  INFORMATION_SCHEMA.TABLES
 			WHERE
-			  TABLE_SCHEMA = '" . TYPO3_db . "'
+			  TABLE_SCHEMA = '" . $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['dbname'] . "'
 			ORDER BY
 			  `rows` DESC, `table`");
 
@@ -119,7 +119,7 @@ class DatabaseUtility
                         `COLUMN_NAME`='%s' 
                     AND
                         `TABLE_NAME`='%s';",
-                TYPO3_db,
+                $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['dbname'],
                 mysqli_real_escape_string($databaseHandler->getDatabaseHandle(), $column),
                 mysqli_real_escape_string($databaseHandler->getDatabaseHandle(), $table)
             ));

@@ -115,7 +115,7 @@ class DatabaseApiService extends BaseApiService
     public function getDatabaseSize()
     {
         $databaseHandler = $this->getDatabaseHandler();
-        $result = $databaseHandler->sql_query("SELECT SUM( data_length + index_length ) AS size FROM information_schema.TABLES WHERE table_schema = '" . TYPO3_db . "'");
+        $result = $databaseHandler->sql_query("SELECT SUM( data_length + index_length ) AS size FROM information_schema.TABLES WHERE table_schema = '" . $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['dbname'] . "'");
         $row = $databaseHandler->sql_fetch_assoc($result);
         $databaseSize = array_pop($row);
         $this->results[] = new KeyValuePair('Database size', GeneralUtility::formatSize($databaseSize));
@@ -267,7 +267,7 @@ class DatabaseApiService extends BaseApiService
     public function getTableCount()
     {
         $databaseHandler = $this->getDatabaseHandler();
-        $result = $databaseHandler->sql_query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '" . TYPO3_db . "'");
+        $result = $databaseHandler->sql_query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '" . $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['dbname'] . "'");
         $row = $databaseHandler->sql_fetch_assoc($result);
         $this->results[] = new KeyValuePair('Database tables', array_pop($row));
         $databaseHandler->sql_free_result($result);
@@ -285,7 +285,7 @@ class DatabaseApiService extends BaseApiService
 				 table_name AS `table`,
 				 round(((data_length + index_length)), 2) `size`
 			FROM information_schema.TABLES
-			WHERE table_schema = '" . TYPO3_db . "'
+			WHERE table_schema = '" . $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['dbname'] . "'
 			ORDER BY (data_length + index_length) DESC
 			LIMIT " . $this->limit . ';');
         $this->results[] = new Header('%s Largest tables by size', [$this->limit]);
@@ -340,7 +340,7 @@ class DatabaseApiService extends BaseApiService
 			FROM
 			  INFORMATION_SCHEMA.TABLES
 			WHERE
-			  TABLE_SCHEMA = '" . TYPO3_db . "'
+			  TABLE_SCHEMA = '" . $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['dbname'] . "'
 			ORDER BY
 			  `rows`, `table` 
 			LIMIT " . $this->limit . ';');
@@ -471,7 +471,7 @@ class DatabaseApiService extends BaseApiService
 			FROM
 				`INFORMATION_SCHEMA`.`COLUMNS` 
 			WHERE
-				`TABLE_SCHEMA`='" . TYPO3_db . "' 
+				`TABLE_SCHEMA`='" . $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['dbname'] . "' 
 			AND
 				`TABLE_NAME`='" . mysqli_real_escape_string($databaseHandler->getDatabaseHandle(),
                 $this->table) . "';");

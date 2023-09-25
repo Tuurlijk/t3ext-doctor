@@ -41,15 +41,17 @@ class ContentApiService extends BaseApiService
      * @param int $limit Show up to [limit] records found
      * @throws \TYPO3\CMS\Core\Error\Http\ServiceUnavailableException
      * @return array
+     *@throws \TYPO3\CMS\Core\Error\Http\ServiceUnavailableException
      */
     public function getInfo($contentType, $listType, $limit)
     {
-        if ((int)$limit) {
-            $this->limit = (int)$limit;
+        if ($limit) {
+            $this->limit = $limit;
         }
 
         TyposcriptUtility::setupTsfe();
         $this->results[] = new Header('Content information');
+
 
         $this->getContentElements();
         $this->getContentTypes();
