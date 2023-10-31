@@ -266,5 +266,6 @@ Tinus Tester
 * Add more scans
 * Also make versions of he extension that run on TYPO3 versions 8 and up
 
-## Known Issues
-Extension is known to work on TYPO3 6.2 and 7.6 and only in the cli.
+## TODO
+
+* Fix \MichielRoos\Doctor\Utility\DatabaseUtility::getRecordAge()

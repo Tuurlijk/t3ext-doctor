@@ -1,21 +1,6 @@
 <?php
 namespace MichielRoos\Doctor\Service;
 
-/**
- * ⓒ 2018 Michiel Roos <michiel@michielroos.com>
- * All rights reserved
- *
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
- *
- * The GNU General Public License can be found at
- * http://www.gnu.org/copyleft/gpl.html
- *
- * The TYPO3 project - inspiring people to share!
- */
 use MichielRoos\Doctor\Domain\Model\Header;
 use MichielRoos\Doctor\Domain\Model\KeyValueHeader;
 use MichielRoos\Doctor\Domain\Model\KeyValuePair;
@@ -209,7 +194,7 @@ class DatabaseApiService extends BaseApiService
      * @param string $where
      * @param string $header
      */
-    public function getRecordAge($where = '', $header = 'Record')
+    public function getRecordAge(string $where = '', string $header = 'Record'): void
     {
         $databaseHandler = $this->getDatabaseHandler();
         $this->results[] = new Header('%s age for table %s', [$header, $this->table]);
@@ -259,18 +244,6 @@ class DatabaseApiService extends BaseApiService
                 );
             }
         }
-    }
-
-    /**
-     * Get table count.
-     */
-    public function getTableCount()
-    {
-        $databaseHandler = $this->getDatabaseHandler();
-        $result = $databaseHandler->sql_query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '" . $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['dbname'] . "'");
-        $row = $databaseHandler->sql_fetch_assoc($result);
-        $this->results[] = new KeyValuePair('Database tables', array_pop($row));
-        $databaseHandler->sql_free_result($result);
     }
 
     /**
